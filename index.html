@@ -46,20 +46,22 @@ dialog{border:0;border-radius:18px;background:var(--card);color:var(--ink);width
 dialog::backdrop{background:rgba(0,0,0,.5)}
 dialog img{width:100%;max-height:50vh;object-fit:contain;border-radius:10px;background:var(--bg)}
 input,select{width:100%;font:inherit;padding:11px;margin-top:10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
-small{color:var(--mute)}label{display:block}dialog{max-height:90vh;overflow:auto}.fl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.fl select{width:auto;margin:0;padding:8px;font-size:14px}.tg{flex-wrap:wrap}.hf{position:absolute;top:3px;right:6px;color:var(--acc);font-size:16px;text-shadow:0 0 3px #0008}
+small{color:var(--mute)}.day{display:block;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid transparent;border-radius:14px;padding:10px 12px;margin-bottom:8px;font:inherit}.day.today{border-color:var(--acc)}.day span{margin-left:8px}.mini{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}.mini img{width:44px;height:44px;object-fit:contain;background:var(--bg);border-radius:6px}label{display:block}dialog{max-height:90vh;overflow:auto}.fl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.fl select{width:auto;margin:0;padding:8px;font-size:14px}.tg{flex-wrap:wrap}.hf{position:absolute;top:3px;right:6px;color:var(--acc);font-size:16px;text-shadow:0 0 3px #0008}
 </style>
 </head>
 <body>
 <main id="app"></main>
 <button class="fab" id="fab" aria-label="Kleidungsstück hinzufügen">+</button>
-<nav><button data-tab="wardrobe">Kleiderschrank</button><button data-tab="outfits">Outfits</button></nav>
+<nav><button data-tab="wardrobe">Kleiderschrank</button><button data-tab="outfits">Outfits</button><button data-tab="plan">Planer</button></nav>
 <input type="file" id="file" accept="image/*" hidden>
 <input type="file" id="imp" hidden>
+<dialog id="wd"><h2 style="margin-top:0">Getragen am …</h2><div class="row opts"></div><div class="row"><button class="btn" id="wdNo">Abbrechen</button></div></dialog>
+<dialog id="pd"><h2 id="pdT" style="margin-top:0"></h2><div id="pdL"></div><div class="row"><button class="btn ghost" id="pdWorn">Als getragen markieren</button><button class="btn ghost" id="pdDel">Entfernen</button><button class="btn" id="pdOk">Schließen</button></div></dialog>
 
 <dialog id="add"><img id="prev" alt="Vorschau"><div id="form"></div>
 <div class="row"><button class="btn acc" id="addOk">Speichern</button><button class="btn ghost" id="addNo">Abbrechen</button></div></dialog>
 <dialog id="view"><img id="big" alt=""><div id="vi"></div>
-<div class="row"><button class="btn ghost" id="vFav">♥</button><button class="btn ghost" id="vWorn">Heute getragen</button><button class="btn ghost" id="vEdit">Bearbeiten</button><button class="btn ghost" id="vDel">Löschen</button><button class="btn" id="vOk">Schließen</button></div></dialog>
+<div class="row"><button class="btn ghost" id="vFav">♥</button><button class="btn ghost" id="vWorn">Getragen am …</button><button class="btn ghost" id="vEdit">Bearbeiten</button><button class="btn ghost" id="vDel">Löschen</button><button class="btn" id="vOk">Schließen</button></div></dialog>
 
 <script>
 const $=s=>document.querySelector(s);
@@ -69,13 +71,13 @@ const TL={w:'Wetter',o:'Anlass',c:'Farbe'};
 const SORTS={new:'Neueste zuerst',old:'Älteste zuerst',worn:'Länger nicht getragen',wornr:'Zuletzt getragen',bought:'Zuletzt gekauft',name:'Name A–Z'};
 const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const fd=d=>d?new Date(d).toLocaleDateString('de-DE'):'–';
-let items=[],outfits=[],tab='wardrobe',F={cat:'Alle',sub:'',w:'',o:'',c:'',fav:false,sort:'new'},editId=null,sel=new Set(),pend=null,viewId=null,selMode=false,dsel=new Set();
+let items=[],outfits=[],tab='wardrobe',F={cat:'Alle',sub:'',w:'',o:'',c:'',fav:false,sort:'new'},editId=null,sel=new Set(),pend=null,viewId=null,selMode=false,dsel=new Set(),plan=[],wk=0,dayKey=null,wdRes=null,sug={w:'',o:''};
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const dbp=new Promise((ok,no)=>{const r=indexedDB.open('garderobe',1);
- r.onupgradeneeded=()=>{r.result.createObjectStore('items',{keyPath:'id'});r.result.createObjectStore('outfits',{keyPath:'id'})};
+const dbp=new Promise((ok,no)=>{const r=indexedDB.open('garderobe',2);
+ r.onupgradeneeded=()=>{const d=r.result;['items','outfits','plan'].forEach(n=>d.objectStoreNames.contains(n)||d.createObjectStore(n,{keyPath:'id'}))};
  r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
 async function st(n,mode,fn){const db=await dbp;return new Promise((ok,no)=>{const t=db.transaction(n,mode);const o=fn(t.objectStore(n));t.oncomplete=()=>ok(o&&o.result);t.onerror=()=>no(t.error)})}
-const load=async()=>{items=(await st('items','readonly',s=>s.getAll())).sort((a,b)=>b.t-a.t);outfits=(await st('outfits','readonly',s=>s.getAll())).sort((a,b)=>b.t-a.t);render()};
+const load=async()=>{items=(await st('items','readonly',s=>s.getAll())).sort((a,b)=>b.t-a.t);outfits=(await st('outfits','readonly',s=>s.getAll())).sort((a,b)=>b.t-a.t);plan=await st('plan','readonly',s=>s.getAll());render()};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 function resize(f,max=800){return new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image();
@@ -102,23 +104,23 @@ function render(){
    :`<p class="empty">Noch leer. Tippe auf +, um dein erstes Kleidungsstück zu fotografieren.</p>`;
   h+=`<h2>Sicherung</h2><small>Deine Daten liegen nur auf diesem iPhone. Sichere sie regelmäßig als Datei.</small>
    <div class="row"><button class="btn ghost" id="exp">Exportieren</button><button class="btn ghost" id="impB">Importieren</button></div>`;
- }else{
+ }else if(tab==='plan'){h=planHtml()}else{
   const chosen=items.filter(x=>sel.has(x.id));
   h=`<h1>Outfits</h1><h2 style="margin-top:0">Neues Outfit</h2>
    <div class="collage">${chosen.length?tiles(chosen,()=>'on'):'<p class="empty" style="grid-column:1/-1;margin:0">Wähle unten Teile aus.</p>'}</div>
    <div class="row"><button class="btn acc" id="saveO" ${chosen.length?'':'disabled'}>Outfit speichern</button>${chosen.length?'<button class="btn ghost" id="clr">Leeren</button>':''}</div>
-   <h2>Teile auswählen</h2>${chips()}${filters()}
+   <h2>Vorschlag</h2><div class="fl">${sel_('sw',TAGS.w,sug.w,'Wetter')}${sel_('so',TAGS.o,sug.o,'Anlass')}<button class="btn acc" id="sugB">Outfit vorschlagen</button></div><h2>Teile auswählen</h2>${chips()}${filters()}
    <div class="grid">${tiles(shown(),x=>sel.has(x.id)?'on':'')}</div>`;
   h+=`<h2>Gespeicherte Outfits</h2>`;
   h+=outfits.length?outfits.map(o=>{const its=o.ids.map(i=>items.find(x=>x.id===i)).filter(Boolean);
    return `<div class="saved"><b>${esc(o.name)}</b><div class="grid">${its.map(x=>`<div class="tile"><img src="${x.img}" alt=""></div>`).join('')}</div>
-   <button class="btn ghost" data-wear="${o.id}">Heute getragen</button> <button class="btn ghost" data-edit="${o.id}">Bearbeiten</button> <button class="btn ghost" data-del="${o.id}">Löschen</button></div>`}).join('')
+   <button class="btn ghost" data-wear="${o.id}">Getragen am …</button> <button class="btn ghost" data-edit="${o.id}">Bearbeiten</button> <button class="btn ghost" data-del="${o.id}">Löschen</button></div>`}).join('')
    :'<p class="empty">Noch keine Outfits gespeichert.</p>';
  }
  $('#app').innerHTML=h;
 }
 
-$('#app').addEventListener('change',e=>{const k=e.target.dataset.s;if(k){F[k]=e.target.value;render()}});
+$('#app').addEventListener('change',e=>{const k=e.target.dataset.s;if(k){if(k==='sw'||k==='so')sug[k[1]]=e.target.value;else F[k]=e.target.value;render()}});
 $('#app').addEventListener('click',async e=>{
  const t=e.target.closest('button');if(!t)return;
  if(t.dataset.f){F.cat=t.dataset.f;F.sub='';return render()}
@@ -130,7 +132,10 @@ $('#app').addEventListener('click',async e=>{
  if(t.id==='saveO'){const name=prompt('Name für das Outfit?',`Outfit ${outfits.length+1}`);if(!name)return;
   await st('outfits','readwrite',s=>s.put({id:uid(),name,ids:[...sel],t:Date.now()}));sel.clear();return load()}
  if(t.dataset.del){if(confirm('Outfit löschen?')){await st('outfits','readwrite',s=>s.delete(t.dataset.del));load()}return}
- if(t.dataset.wear){const o=outfits.find(x=>x.id===t.dataset.wear);for(const id of o.ids){const x=items.find(i=>i.id===id);if(x){x.worn=today();await st('items','readwrite',s=>s.put(x))}}await load();return alert('„Zuletzt getragen“ wurde aktualisiert.')}
+ if(t.dataset.wear){const o=outfits.find(x=>x.id===t.dataset.wear),d=await askDate();if(d){await markWorn(o.ids,d);await load();alert('Getragen-Datum aktualisiert.')}return}
+ if(t.dataset.wk!==undefined){wk=t.dataset.wk==='0'?0:wk+ +t.dataset.wk;return render()}
+ if(t.dataset.day)return openDay(t.dataset.day);
+ if(t.id==='sugB'){const r=suggest();if(!r.length)return alert('Keine passenden Teile gefunden. Wähle andere Filter oder füge mehr Teile hinzu.');sel=new Set(r.map(x=>x.id));return render()}
  if(t.dataset.edit){const o=outfits.find(x=>x.id===t.dataset.edit);sel=new Set(o.ids);await st('outfits','readwrite',s=>s.delete(o.id));await load();scrollTo(0,0);return}
  if(t.id==='selT'){selMode=!selMode;dsel.clear();return render()}
  if(t.id==='selAll'){shown().forEach(x=>dsel.add(x.id));return render()}
@@ -154,7 +159,7 @@ function showView(){const x=items.find(i=>i.id===viewId),t=x.tags||{};$('#big').
  $('#vFav').textContent=x.fav?'♥ Favorit':'♡ Favorit'}
 const upd=async f=>{const x=items.find(i=>i.id===viewId);f(x);await st('items','readwrite',s=>s.put(x));await load();showView()};
 $('#vFav').onclick=()=>upd(x=>x.fav=!x.fav);
-$('#vWorn').onclick=()=>upd(x=>x.worn=today());
+$('#vWorn').onclick=async()=>{const d=await askDate();if(d){await markWorn([viewId],d);await load();showView()}};
 $('#vEdit').onclick=()=>{const x=items.find(i=>i.id===viewId);$('#view').close();openForm(x,x.img)};
 $('#file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
  try{pend=await resize(f)}catch{return alert('Das Bild konnte nicht gelesen werden.')}
@@ -168,7 +173,7 @@ $('#vOk').onclick=()=>$('#view').close();
 $('#vDel').onclick=async()=>{if(!confirm('Dieses Teil löschen?'))return;await st('items','readwrite',s=>s.delete(viewId));sel.delete(viewId);$('#view').close();load()};
 
 async function exportData(){
- const blob=new Blob([JSON.stringify({v:1,items,outfits})],{type:'application/json'});
+ const blob=new Blob([JSON.stringify({v:2,items,outfits,plan})],{type:'application/json'});
  const file=new File([blob],`garderobe-${new Date().toISOString().slice(0,10)}.json`,{type:'application/json'});
  try{if(navigator.canShare&&navigator.canShare({files:[file]}))return await navigator.share({files:[file]})}catch(e){if(e.name==='AbortError')return}
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click()}
@@ -180,8 +185,42 @@ $('#imp').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)r
    if(byImg.has(x.img)){remap[x.id]=byImg.get(x.img);sk++;continue}
    await st('items','readwrite',s=>s.put(x));byId.add(x.id);byImg.set(x.img,x.id);a++}
   for(const o of d.outfits||[])if(!oids.has(o.id))await st('outfits','readwrite',s=>s.put({...o,ids:o.ids.map(i=>remap[i]||i)}));
+  for(const p of d.plan||[])if(!plan.some(x=>x.id===p.id))await st('plan','readwrite',s=>s.put(p));
   load();alert(`${a} neue Teile importiert, ${sk} Duplikate übersprungen.`)}catch{alert('Diese Datei ist keine gültige Garderobe-Sicherung.')}};
 
+const ymd=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const DN=['So','Mo','Di','Mi','Do','Fr','Sa'];
+const outIts=o=>o.ids.map(i=>items.find(x=>x.id===i)).filter(Boolean);
+async function markWorn(ids,d){for(const id of ids){const x=items.find(i=>i.id===id);if(x&&(x.worn||'')<d){x.worn=d;await st('items','readwrite',s=>s.put(x))}}}
+function askDate(){return new Promise(ok=>{let h='';
+ for(let i=0;i<8;i++){const d=addD(new Date(),-i);h+=`<button class="btn ghost" data-d="${ymd(d)}">${i?i===1?'Gestern':DN[d.getDay()]+' '+d.getDate()+'.'+(d.getMonth()+1)+'.':'Heute'}</button>`}
+ $('#wd .opts').innerHTML=h;wdRes=ok;$('#wd').showModal()})}
+$('#wd').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#wd').close();wdRes(b.dataset.d||null)};
+function planHtml(){const d0=new Date();d0.setHours(12,0,0,0);d0.setDate(d0.getDate()-((d0.getDay()+6)%7)+7*wk);const t0=ymd(new Date());
+ const body=[...Array(7)].map((_,i)=>{const d=addD(d0,i),k=ymd(d),p=plan.find(x=>x.id===k),o=p&&outfits.find(x=>x.id===p.oid);
+  return `<button class="day ${k===t0?'today':''}" data-day="${k}"><b>${DN[d.getDay()]} ${d.getDate()}.${d.getMonth()+1}.</b>${o?`<span>${esc(o.name)}</span><div class="mini">${outIts(o).map(x=>`<img src="${x.img}" alt="">`).join('')}</div>`:'<small style="margin-left:8px">+ Outfit planen</small>'}</button>`}).join('');
+ return `<h1>Wochenplaner</h1><div class="row" style="margin:0 0 12px"><button class="btn ghost" data-wk="-1">‹ Zurück</button><button class="btn ghost" data-wk="0">Diese Woche</button><button class="btn ghost" data-wk="1">Weiter ›</button></div>${body}`}
+function openDay(k){dayKey=k;const p=plan.find(x=>x.id===k),d=new Date(k+'T12:00:00');
+ $('#pdT').textContent=DN[d.getDay()]+', '+d.toLocaleDateString('de-DE');
+ $('#pdL').innerHTML=outfits.length?outfits.map(o=>`<button class="day ${p&&p.oid===o.id?'today':''}" data-o="${o.id}"><b>${esc(o.name)}</b><div class="mini">${outIts(o).map(x=>`<img src="${x.img}" alt="">`).join('')}</div></button>`).join(''):'<p class="empty">Speichere zuerst im Tab „Outfits“ ein Outfit.</p>';
+ $('#pdWorn').style.display=$('#pdDel').style.display=p?'':'none';$('#pd').showModal()}
+$('#pd').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.o){await st('plan','readwrite',s=>s.put({id:dayKey,oid:b.dataset.o}));$('#pd').close();return load()}
+ if(b.id==='pdDel'){await st('plan','readwrite',s=>s.delete(dayKey));$('#pd').close();return load()}
+ if(b.id==='pdWorn'){if(dayKey>today())return alert('Dieser Tag liegt in der Zukunft.');const p=plan.find(x=>x.id===dayKey),o=p&&outfits.find(x=>x.id===p.oid);if(o){await markWorn(o.ids,dayKey);await load()}$('#pd').close();return alert('Als getragen markiert.')}
+ if(b.id==='pdOk')$('#pd').close()};
+function suggest(){
+ const days=x=>x.worn?Math.min(90,(Date.now()-new Date(x.worn))/864e5):90;
+ const has=(x,k,v)=>((x.tags||{})[k]||[]).includes(v);
+ const ok=(x,k,v)=>!v||!((x.tags||{})[k]||[]).length||has(x,k,v);
+ const NEU=['Schwarz','Weiß','Grau','Beige','Blau'];
+ const clash=(a,b)=>{const A=(a.tags||{}).c||[],B=(b.tags||{}).c||[];return A.some(c=>!NEU.includes(c))&&B.some(c=>!NEU.includes(c))&&!A.some(c=>B.includes(c))};
+ const pick=(cat,ref)=>{const l=items.filter(x=>x.cat===cat&&ok(x,'w',sug.w)&&ok(x,'o',sug.o));if(!l.length)return null;
+  return l.map(x=>({x,s:Math.random()*2+days(x)/30+(x.fav?.5:0)+(sug.w&&has(x,'w',sug.w)?1:0)+(sug.o&&has(x,'o',sug.o)?1:0)-(ref.some(r=>clash(r,x))?2:0)})).sort((a,b)=>b.s-a.s)[0].x};
+ const out=[];for(const c of ['Oberteile','Hosen','Schuhe']){const x=pick(c,out);if(x)out.push(x)}
+ if(['Winter','Regen','Übergang'].includes(sug.w)||(!sug.w&&Math.random()<.3)){const j=pick('Jacken',out);if(j)out.push(j)}
+ return out}
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{});
 load();
