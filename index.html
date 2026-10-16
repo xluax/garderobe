@@ -46,7 +46,7 @@ dialog{border:0;border-radius:18px;background:var(--card);color:var(--ink);width
 dialog::backdrop{background:rgba(0,0,0,.5)}
 dialog img{width:100%;max-height:50vh;object-fit:contain;border-radius:10px;background:var(--bg)}
 input,select{width:100%;font:inherit;padding:11px;margin-top:10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
-small{color:var(--mute)}
+small{color:var(--mute)}label{display:block}dialog{max-height:90vh;overflow:auto}.fl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.fl select{width:auto;margin:0;padding:8px;font-size:14px}.tg{flex-wrap:wrap}.hf{position:absolute;top:3px;right:6px;color:var(--acc);font-size:16px;text-shadow:0 0 3px #0008}
 </style>
 </head>
 <body>
@@ -56,16 +56,20 @@ small{color:var(--mute)}
 <input type="file" id="file" accept="image/*" hidden>
 <input type="file" id="imp" hidden>
 
-<dialog id="add"><img id="prev" alt="Vorschau">
-<select id="cat"></select><input id="nm" placeholder="Name (optional), z. B. blaue Jeans">
+<dialog id="add"><img id="prev" alt="Vorschau"><div id="form"></div>
 <div class="row"><button class="btn acc" id="addOk">Speichern</button><button class="btn ghost" id="addNo">Abbrechen</button></div></dialog>
-<dialog id="view"><img id="big" alt=""><p id="vn"></p>
-<div class="row"><button class="btn ghost" id="vDel">Löschen</button><button class="btn" id="vOk">Schließen</button></div></dialog>
+<dialog id="view"><img id="big" alt=""><div id="vi"></div>
+<div class="row"><button class="btn ghost" id="vFav">♥</button><button class="btn ghost" id="vWorn">Heute getragen</button><button class="btn ghost" id="vEdit">Bearbeiten</button><button class="btn ghost" id="vDel">Löschen</button><button class="btn" id="vOk">Schließen</button></div></dialog>
 
 <script>
 const $=s=>document.querySelector(s);
-const CATS=['Oberteile','Hosen','Kleider','Jacken','Schuhe','Accessoires'];
-let items=[],outfits=[],tab='wardrobe',filter='Alle',sel=new Set(),pend=null,viewId=null,selMode=false,dsel=new Set();
+const CATS={Oberteile:['T-Shirt','Longsleeve','Hemd','Polo','Pullover','Sweatshirt','Hoodie','Zip-Hoodie'],Hosen:['Jeans','Chino','Stoffhose','Jogginghose','Shorts'],Jacken:['Übergangsjacke','Winterjacke','Blazer','Weste'],Schuhe:['Sneaker','Boots','Halbschuhe','Sandalen'],Accessoires:['Mütze','Schal','Gürtel','Uhr','Tasche']};
+const TAGS={w:['Sommer','Winter','Übergang','Regen'],o:['Alltag','Arbeit','Sport','Abend','Festlich'],c:['Schwarz','Weiß','Grau','Blau','Grün','Rot','Braun','Beige','Gelb','Bunt']};
+const TL={w:'Wetter',o:'Anlass',c:'Farbe'};
+const SORTS={new:'Neueste zuerst',old:'Älteste zuerst',worn:'Länger nicht getragen',wornr:'Zuletzt getragen',bought:'Zuletzt gekauft',name:'Name A–Z'};
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const fd=d=>d?new Date(d).toLocaleDateString('de-DE'):'–';
+let items=[],outfits=[],tab='wardrobe',F={cat:'Alle',sub:'',w:'',o:'',c:'',fav:false,sort:'new'},editId=null,sel=new Set(),pend=null,viewId=null,selMode=false,dsel=new Set();
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dbp=new Promise((ok,no)=>{const r=indexedDB.open('garderobe',1);
  r.onupgradeneeded=()=>{r.result.createObjectStore('items',{keyPath:'id'});r.result.createObjectStore('outfits',{keyPath:'id'})};
@@ -79,16 +83,21 @@ function resize(f,max=800){return new Promise((ok,no)=>{const u=URL.createObject
   c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);
   URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.82))};i.onerror=no;i.src=u})}
 
-function tiles(list,cls){return list.map(x=>`<button class="tile ${cls(x)}" data-id="${x.id}"><img src="${x.img}" alt="${esc(x.name||x.cat)}">${x.name?`<span class="n">${esc(x.name)}</span>`:''}</button>`).join('')}
-function chips(){return `<div class="chips">${['Alle',...CATS].map(c=>`<button class="chip ${c===filter?'on':''}" data-f="${c}">${c}</button>`).join('')}</div>`}
-const shown=()=>filter==='Alle'?items:items.filter(x=>x.cat===filter);
+function tiles(list,cls){return list.map(x=>`<button class="tile ${cls(x)}" data-id="${x.id}"><img src="${x.img}" alt="${esc(x.name||x.cat)}">${x.name?`<span class="n">${esc(x.name)}</span>`:''}${x.fav?'<span class="hf">♥</span>':''}</button>`).join('')}
+function chips(){return `<div class="chips">${['Alle',...Object.keys(CATS)].map(c=>`<button class="chip ${c===F.cat?'on':''}" data-f="${c}">${c}</button>`).join('')}</div>`}
+const sel_=(k,o,v,l)=>`<select data-s="${k}"><option value="">${l}</option>${o.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('')}</select>`;
+function filters(){const subs=CATS[F.cat]||[];
+ return `<div class="fl">${subs.length?sel_('sub',subs,F.sub,'Alle Typen'):''}${['w','o','c'].map(k=>sel_(k,TAGS[k],F[k],TL[k])).join('')}<select data-s="sort">${Object.entries(SORTS).map(([k,v])=>`<option value="${k}" ${k===F.sort?'selected':''}>${v}</option>`).join('')}</select><button class="chip ${F.fav?'on':''}" data-fav="1">♥ Favoriten</button></div>`}
+function shown(){const d=(a,b)=>(a||'').localeCompare(b||'');
+ const S={new:(a,b)=>b.t-a.t,old:(a,b)=>a.t-b.t,worn:(a,b)=>d(a.worn,b.worn),wornr:(a,b)=>d(b.worn,a.worn),bought:(a,b)=>d(b.bought,a.bought),name:(a,b)=>d(a.name,b.name)};
+ return items.filter(x=>(F.cat==='Alle'||x.cat===F.cat)&&(!F.sub||x.sub===F.sub)&&(!F.fav||x.fav)&&['w','o','c'].every(k=>!F[k]||((x.tags||{})[k]||[]).includes(F[k]))).sort(S[F.sort])}
 
 function render(){
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
  $('#fab').style.display=tab==='wardrobe'&&!selMode?'':'none';
  let h='';
  if(tab==='wardrobe'){
-  h=`<h1>Kleiderschrank</h1>${items.length?`<div class="row" style="margin:0 0 12px"><button class="btn ghost" id="selT">${selMode?'Fertig':'Auswählen'}</button>${selMode?`<button class="btn ghost" id="selAll">Alle auswählen</button><button class="btn acc" id="delSel" ${dsel.size?'':'disabled'}>Löschen (${dsel.size})</button>`:''}</div>`:''}${chips()}`;
+  h=`<h1>Kleiderschrank</h1>${items.length?`<div class="row" style="margin:0 0 12px"><button class="btn ghost" id="selT">${selMode?'Fertig':'Auswählen'}</button>${selMode?`<button class="btn ghost" id="selAll">Alle auswählen</button><button class="btn acc" id="delSel" ${dsel.size?'':'disabled'}>Löschen (${dsel.size})</button>`:''}</div>`:''}${chips()}${filters()}`;
   h+=items.length?`<div class="grid">${tiles(shown(),x=>selMode&&dsel.has(x.id)?'on':'')}</div>${shown().length?'':'<p class="empty">Hier ist noch nichts.</p>'}`
    :`<p class="empty">Noch leer. Tippe auf +, um dein erstes Kleidungsstück zu fotografieren.</p>`;
   h+=`<h2>Sicherung</h2><small>Deine Daten liegen nur auf diesem iPhone. Sichere sie regelmäßig als Datei.</small>
@@ -98,27 +107,30 @@ function render(){
   h=`<h1>Outfits</h1><h2 style="margin-top:0">Neues Outfit</h2>
    <div class="collage">${chosen.length?tiles(chosen,()=>'on'):'<p class="empty" style="grid-column:1/-1;margin:0">Wähle unten Teile aus.</p>'}</div>
    <div class="row"><button class="btn acc" id="saveO" ${chosen.length?'':'disabled'}>Outfit speichern</button>${chosen.length?'<button class="btn ghost" id="clr">Leeren</button>':''}</div>
-   <h2>Teile auswählen</h2>${chips()}
+   <h2>Teile auswählen</h2>${chips()}${filters()}
    <div class="grid">${tiles(shown(),x=>sel.has(x.id)?'on':'')}</div>`;
   h+=`<h2>Gespeicherte Outfits</h2>`;
   h+=outfits.length?outfits.map(o=>{const its=o.ids.map(i=>items.find(x=>x.id===i)).filter(Boolean);
    return `<div class="saved"><b>${esc(o.name)}</b><div class="grid">${its.map(x=>`<div class="tile"><img src="${x.img}" alt=""></div>`).join('')}</div>
-   <button class="btn ghost" data-edit="${o.id}">Bearbeiten</button> <button class="btn ghost" data-del="${o.id}">Löschen</button></div>`}).join('')
+   <button class="btn ghost" data-wear="${o.id}">Heute getragen</button> <button class="btn ghost" data-edit="${o.id}">Bearbeiten</button> <button class="btn ghost" data-del="${o.id}">Löschen</button></div>`}).join('')
    :'<p class="empty">Noch keine Outfits gespeichert.</p>';
  }
  $('#app').innerHTML=h;
 }
 
+$('#app').addEventListener('change',e=>{const k=e.target.dataset.s;if(k){F[k]=e.target.value;render()}});
 $('#app').addEventListener('click',async e=>{
  const t=e.target.closest('button');if(!t)return;
- if(t.dataset.f){filter=t.dataset.f;return render()}
+ if(t.dataset.f){F.cat=t.dataset.f;F.sub='';return render()}
+ if(t.dataset.fav){F.fav=!F.fav;return render()}
  if(t.classList.contains('tile')){const id=t.dataset.id;
-  if(tab==='wardrobe'){if(selMode){dsel.has(id)?dsel.delete(id):dsel.add(id);return render()}const x=items.find(i=>i.id===id);viewId=id;$('#big').src=x.img;$('#vn').textContent=(x.name?x.name+' · ':'')+x.cat;$('#view').showModal()}
+  if(tab==='wardrobe'){if(selMode){dsel.has(id)?dsel.delete(id):dsel.add(id);return render()}viewId=id;showView();$('#view').showModal()}
   else{sel.has(id)?sel.delete(id):sel.add(id);render()}return}
  if(t.id==='clr'){sel.clear();return render()}
  if(t.id==='saveO'){const name=prompt('Name für das Outfit?',`Outfit ${outfits.length+1}`);if(!name)return;
   await st('outfits','readwrite',s=>s.put({id:uid(),name,ids:[...sel],t:Date.now()}));sel.clear();return load()}
  if(t.dataset.del){if(confirm('Outfit löschen?')){await st('outfits','readwrite',s=>s.delete(t.dataset.del));load()}return}
+ if(t.dataset.wear){const o=outfits.find(x=>x.id===t.dataset.wear);for(const id of o.ids){const x=items.find(i=>i.id===id);if(x){x.worn=today();await st('items','readwrite',s=>s.put(x))}}await load();return alert('„Zuletzt getragen“ wurde aktualisiert.')}
  if(t.dataset.edit){const o=outfits.find(x=>x.id===t.dataset.edit);sel=new Set(o.ids);await st('outfits','readwrite',s=>s.delete(o.id));await load();scrollTo(0,0);return}
  if(t.id==='selT'){selMode=!selMode;dsel.clear();return render()}
  if(t.id==='selAll'){shown().forEach(x=>dsel.add(x.id));return render()}
@@ -126,14 +138,32 @@ $('#app').addEventListener('click',async e=>{
  if(t.id==='exp')return exportData();
  if(t.id==='impB')return $('#imp').click();
 });
-document.querySelector('nav').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;filter='Alle';selMode=false;dsel.clear();render();scrollTo(0,0)}};
+document.querySelector('nav').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;F.cat='Alle';F.sub='';selMode=false;dsel.clear();render();scrollTo(0,0)}};
 $('#fab').onclick=()=>$('#file').click();
-$('#cat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');
+function formHtml(x){const t=x.tags||{};
+ return `<select id="cat">${Object.keys(CATS).map(c=>`<option ${c===x.cat?'selected':''}>${c}</option>`).join('')}</select><select id="sub"></select>
+ <input id="nm" placeholder="Name (optional), z. B. blaue Jeans" value="${esc(x.name)}">
+ <label><small>Gekauft am</small><input id="bt" type="date" value="${x.bought||''}"></label>
+ ${['w','o','c'].map(k=>`<small>${TL[k]}</small><div class="chips tg" data-k="${k}">${TAGS[k].map(v=>`<button type="button" class="chip ${(t[k]||[]).includes(v)?'on':''}" data-v="${v}">${v}</button>`).join('')}</div>`).join('')}`}
+function fillSub(cur){$('#sub').innerHTML=CATS[$('#cat').value].map(s=>`<option ${s===cur?'selected':''}>${s}</option>`).join('')}
+function openForm(x,img){editId=x.id||null;pend=img;$('#prev').src=img;$('#form').innerHTML=formHtml(x);fillSub(x.sub);$('#add').showModal()}
+$('#form').onclick=e=>{const b=e.target.closest('.chip');if(b)b.classList.toggle('on')};
+$('#form').onchange=e=>{if(e.target.id==='cat')fillSub()};
+function showView(){const x=items.find(i=>i.id===viewId),t=x.tags||{};$('#big').src=x.img;
+ $('#vi').innerHTML=`<p><b>${esc(x.name||x.sub||x.cat)}</b><br><small>${x.cat}${x.sub?' · '+x.sub:''}<br>Gekauft: ${fd(x.bought)}<br>Zuletzt getragen: ${fd(x.worn)}<br>Hinzugefügt: ${fd(x.t)}</small></p>${['w','o','c'].flatMap(k=>t[k]||[]).map(v=>`<span class="chip on" style="display:inline-block;margin:0 4px 4px 0;padding:3px 10px;font-size:12px">${esc(v)}</span>`).join('')}`;
+ $('#vFav').textContent=x.fav?'♥ Favorit':'♡ Favorit'}
+const upd=async f=>{const x=items.find(i=>i.id===viewId);f(x);await st('items','readwrite',s=>s.put(x));await load();showView()};
+$('#vFav').onclick=()=>upd(x=>x.fav=!x.fav);
+$('#vWorn').onclick=()=>upd(x=>x.worn=today());
+$('#vEdit').onclick=()=>{const x=items.find(i=>i.id===viewId);$('#view').close();openForm(x,x.img)};
 $('#file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
  try{pend=await resize(f)}catch{return alert('Das Bild konnte nicht gelesen werden.')}
- $('#prev').src=pend;$('#nm').value='';if(CATS.includes(filter))$('#cat').value=filter;$('#add').showModal()};
+ openForm({cat:CATS[F.cat]?F.cat:'Oberteile',sub:F.sub},pend)};
 $('#addNo').onclick=()=>$('#add').close();
-$('#addOk').onclick=async()=>{await st('items','readwrite',s=>s.put({id:uid(),img:pend,cat:$('#cat').value,name:$('#nm').value.trim(),t:Date.now()}));$('#add').close();load()};
+$('#addOk').onclick=async()=>{const o=items.find(i=>i.id===editId)||{},tags={};
+ document.querySelectorAll('#form .tg').forEach(g=>tags[g.dataset.k]=[...g.querySelectorAll('.chip.on')].map(b=>b.dataset.v));
+ const x={...o,id:o.id||uid(),img:o.img||pend,t:o.t||Date.now(),cat:$('#cat').value,sub:$('#sub').value,name:$('#nm').value.trim(),bought:$('#bt').value,tags,fav:!!o.fav,worn:o.worn||''};
+ await st('items','readwrite',s=>s.put(x));$('#add').close();load()};
 $('#vOk').onclick=()=>$('#view').close();
 $('#vDel').onclick=async()=>{if(!confirm('Dieses Teil löschen?'))return;await st('items','readwrite',s=>s.delete(viewId));sel.delete(viewId);$('#view').close();load()};
 
