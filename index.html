@@ -65,7 +65,7 @@ small{color:var(--mute)}
 <script>
 const $=s=>document.querySelector(s);
 const CATS=['Oberteile','Hosen','Kleider','Jacken','Schuhe','Accessoires'];
-let items=[],outfits=[],tab='wardrobe',filter='Alle',sel=new Set(),pend=null,viewId=null;
+let items=[],outfits=[],tab='wardrobe',filter='Alle',sel=new Set(),pend=null,viewId=null,selMode=false,dsel=new Set();
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dbp=new Promise((ok,no)=>{const r=indexedDB.open('garderobe',1);
  r.onupgradeneeded=()=>{r.result.createObjectStore('items',{keyPath:'id'});r.result.createObjectStore('outfits',{keyPath:'id'})};
@@ -85,11 +85,11 @@ const shown=()=>filter==='Alle'?items:items.filter(x=>x.cat===filter);
 
 function render(){
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
- $('#fab').style.display=tab==='wardrobe'?'':'none';
+ $('#fab').style.display=tab==='wardrobe'&&!selMode?'':'none';
  let h='';
  if(tab==='wardrobe'){
-  h=`<h1>Kleiderschrank</h1>${chips()}`;
-  h+=items.length?`<div class="grid">${tiles(shown(),()=>'' )}</div>${shown().length?'':'<p class="empty">Hier ist noch nichts.</p>'}`
+  h=`<h1>Kleiderschrank</h1>${items.length?`<div class="row" style="margin:0 0 12px"><button class="btn ghost" id="selT">${selMode?'Fertig':'Auswählen'}</button>${selMode?`<button class="btn ghost" id="selAll">Alle auswählen</button><button class="btn acc" id="delSel" ${dsel.size?'':'disabled'}>Löschen (${dsel.size})</button>`:''}</div>`:''}${chips()}`;
+  h+=items.length?`<div class="grid">${tiles(shown(),x=>selMode&&dsel.has(x.id)?'on':'')}</div>${shown().length?'':'<p class="empty">Hier ist noch nichts.</p>'}`
    :`<p class="empty">Noch leer. Tippe auf +, um dein erstes Kleidungsstück zu fotografieren.</p>`;
   h+=`<h2>Sicherung</h2><small>Deine Daten liegen nur auf diesem iPhone. Sichere sie regelmäßig als Datei.</small>
    <div class="row"><button class="btn ghost" id="exp">Exportieren</button><button class="btn ghost" id="impB">Importieren</button></div>`;
@@ -113,17 +113,20 @@ $('#app').addEventListener('click',async e=>{
  const t=e.target.closest('button');if(!t)return;
  if(t.dataset.f){filter=t.dataset.f;return render()}
  if(t.classList.contains('tile')){const id=t.dataset.id;
-  if(tab==='wardrobe'){const x=items.find(i=>i.id===id);viewId=id;$('#big').src=x.img;$('#vn').textContent=(x.name?x.name+' · ':'')+x.cat;$('#view').showModal()}
+  if(tab==='wardrobe'){if(selMode){dsel.has(id)?dsel.delete(id):dsel.add(id);return render()}const x=items.find(i=>i.id===id);viewId=id;$('#big').src=x.img;$('#vn').textContent=(x.name?x.name+' · ':'')+x.cat;$('#view').showModal()}
   else{sel.has(id)?sel.delete(id):sel.add(id);render()}return}
  if(t.id==='clr'){sel.clear();return render()}
  if(t.id==='saveO'){const name=prompt('Name für das Outfit?',`Outfit ${outfits.length+1}`);if(!name)return;
   await st('outfits','readwrite',s=>s.put({id:uid(),name,ids:[...sel],t:Date.now()}));sel.clear();return load()}
  if(t.dataset.del){if(confirm('Outfit löschen?')){await st('outfits','readwrite',s=>s.delete(t.dataset.del));load()}return}
  if(t.dataset.edit){const o=outfits.find(x=>x.id===t.dataset.edit);sel=new Set(o.ids);await st('outfits','readwrite',s=>s.delete(o.id));await load();scrollTo(0,0);return}
+ if(t.id==='selT'){selMode=!selMode;dsel.clear();return render()}
+ if(t.id==='selAll'){shown().forEach(x=>dsel.add(x.id));return render()}
+ if(t.id==='delSel'){if(!confirm(`${dsel.size} Teile löschen?`))return;for(const id of dsel){await st('items','readwrite',s=>s.delete(id));sel.delete(id)}dsel.clear();selMode=false;return load()}
  if(t.id==='exp')return exportData();
  if(t.id==='impB')return $('#imp').click();
 });
-document.querySelector('nav').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;filter='Alle';render();scrollTo(0,0)}};
+document.querySelector('nav').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;filter='Alle';selMode=false;dsel.clear();render();scrollTo(0,0)}};
 $('#fab').onclick=()=>$('#file').click();
 $('#cat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');
 $('#file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
@@ -141,9 +144,13 @@ async function exportData(){
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click()}
 $('#imp').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
  try{const d=JSON.parse(await f.text());if(!Array.isArray(d.items))throw 0;
-  for(const x of d.items)await st('items','readwrite',s=>s.put(x));
-  for(const o of d.outfits||[])await st('outfits','readwrite',s=>s.put(o));
-  load();alert('Sicherung importiert.')}catch{alert('Diese Datei ist keine gültige Garderobe-Sicherung.')}};
+  const byId=new Set(items.map(x=>x.id)),byImg=new Map(items.map(x=>[x.img,x.id])),oids=new Set(outfits.map(o=>o.id)),remap={};
+  let a=0,sk=0;
+  for(const x of d.items){if(byId.has(x.id)){sk++;continue}
+   if(byImg.has(x.img)){remap[x.id]=byImg.get(x.img);sk++;continue}
+   await st('items','readwrite',s=>s.put(x));byId.add(x.id);byImg.set(x.img,x.id);a++}
+  for(const o of d.outfits||[])if(!oids.has(o.id))await st('outfits','readwrite',s=>s.put({...o,ids:o.ids.map(i=>remap[i]||i)}));
+  load();alert(`${a} neue Teile importiert, ${sk} Duplikate übersprungen.`)}catch{alert('Diese Datei ist keine gültige Garderobe-Sicherung.')}};
 
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{});
