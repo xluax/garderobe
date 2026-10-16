@@ -46,7 +46,7 @@ dialog{border:0;border-radius:18px;background:var(--card);color:var(--ink);width
 dialog::backdrop{background:rgba(0,0,0,.5)}
 dialog img{width:100%;max-height:50vh;object-fit:contain;border-radius:10px;background:var(--bg)}
 input,select{width:100%;font:inherit;padding:11px;margin-top:10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
-.fig{display:flex;justify-content:center;margin-bottom:10px}.week{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.week .day{margin:0}#bgC{display:block;width:100%;height:auto;max-height:55vh;object-fit:contain;border-radius:10px;background:repeating-conic-gradient(#c9c9c9 0 25%,#eee 0 50%) 0 0/20px 20px}.hw{position:absolute;top:3px;left:5px;font-size:15px}.tile.dirty img{opacity:.45}.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:14px}.bar span{width:110px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar div{flex:1;background:var(--card);border-radius:6px;height:14px}.bar i{display:block;height:100%;background:var(--acc);border-radius:6px}small{color:var(--mute)}.day{display:block;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid transparent;border-radius:14px;padding:10px 12px;margin-bottom:8px;font:inherit}.day.today{border-color:var(--acc)}.day span{margin-left:8px}.mini{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}.mini img{width:44px;height:44px;object-fit:contain;background:var(--bg);border-radius:6px}label{display:block}dialog{max-height:90vh;overflow:auto}.fl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.fl select{width:auto;margin:0;padding:8px;font-size:14px}.tg{flex-wrap:wrap}.hf{position:absolute;top:3px;right:6px;color:var(--acc);font-size:16px;text-shadow:0 0 3px #0008}
+.fig{display:flex;justify-content:center;margin-bottom:10px}.week{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.week .day{margin:0}#bgC{display:block;width:100%;height:auto;max-height:55vh;object-fit:contain;border-radius:10px;background:repeating-conic-gradient(#c9c9c9 0 25%,#eee 0 50%) 0 0/20px 20px}.hw{position:absolute;top:3px;left:5px;font-size:15px}.tile.dirty img{opacity:.45}.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:14px}.bar span{width:110px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar div{flex:1;background:var(--card);border-radius:6px;height:14px}.bar i{display:block;height:100%;background:var(--acc);border-radius:6px}.mg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.mh{text-align:center}.mc{aspect-ratio:1;background:var(--card);border:2px solid transparent;border-radius:10px;color:var(--ink);font:inherit;padding:3px 2px;display:flex;flex-direction:column;align-items:center;justify-content:space-between}.mc.today{border-color:var(--acc)}.mc span{display:flex;gap:3px;align-items:center;height:14px}.dp{width:8px;height:8px;border-radius:50%;border:2px solid var(--acc)}.dw{width:8px;height:8px;border-radius:50%;background:var(--acc)}.mc small{font-size:10px}small{color:var(--mute)}.day{display:block;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid transparent;border-radius:14px;padding:10px 12px;margin-bottom:8px;font:inherit}.day.today{border-color:var(--acc)}.day span{margin-left:8px}.mini{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}.mini img{width:44px;height:44px;object-fit:contain;background:var(--bg);border-radius:6px}label{display:block}dialog{max-height:90vh;overflow:auto}.fl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.fl select{width:auto;margin:0;padding:8px;font-size:14px}.tg{flex-wrap:wrap}.hf{position:absolute;top:3px;right:6px;color:var(--acc);font-size:16px;text-shadow:0 0 3px #0008}
 </style>
 </head>
 <body>
@@ -75,7 +75,7 @@ const TL={w:'Wetter',o:'Anlass',c:'Farbe'};
 const SORTS={new:'Neueste zuerst',old:'Älteste zuerst',worn:'Länger nicht getragen',wornr:'Zuletzt getragen',bought:'Zuletzt gekauft',name:'Name A–Z',cost:'Preis (hoch zuerst)',wc:'Meistgetragen'};
 const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const fd=d=>d?new Date(d).toLocaleDateString('de-DE'):'–';
-let items=[],outfits=[],tab='wardrobe',F={cat:'Alle',sub:'',w:'',o:'',c:'',fav:false,b:'',wa:'',sort:'new'},editId=null,sel=new Set(),pend=null,viewId=null,selMode=false,dsel=new Set(),plan=[],wk=0,dayKey=null,wdRes=null,sug={w:'',o:''};
+let items=[],outfits=[],tab='wardrobe',F={cat:'Alle',sub:'',w:'',o:'',c:'',fav:false,b:'',wa:'',sort:'new'},editId=null,sel=new Set(),pend=null,viewId=null,selMode=false,dsel=new Set(),plan=[],wk=0,dayKey=null,wdRes=null,pv='week',mo=0,sug={w:'',o:''};
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dbp=new Promise((ok,no)=>{const r=indexedDB.open('garderobe',3);
  r.onupgradeneeded=()=>{const d=r.result;['items','outfits','plan','lists'].forEach(n=>d.objectStoreNames.contains(n)||d.createObjectStore(n,{keyPath:'id'}))};
@@ -138,6 +138,8 @@ $('#app').addEventListener('click',async e=>{
   await st('outfits','readwrite',s=>s.put({id:uid(),name,ids:[...sel],t:Date.now()}));sel.clear();return load()}
  if(t.dataset.del){if(confirm('Outfit löschen?')){await st('outfits','readwrite',s=>s.delete(t.dataset.del));load()}return}
  if(t.dataset.wear){const o=outfits.find(x=>x.id===t.dataset.wear),d=await askDate();if(d){await markWorn(o.ids,d);await load();alert('Getragen-Datum aktualisiert.')}return}
+ if(t.dataset.pv){pv=t.dataset.pv;return render()}
+ if(t.dataset.mo!==undefined){mo=t.dataset.mo==='0'?0:mo+ +t.dataset.mo;return render()}
  if(t.dataset.wk!==undefined){wk=t.dataset.wk==='0'?0:wk+ +t.dataset.wk;return render()}
  if(t.dataset.day)return openDay(t.dataset.day);
  if(t.id==='sugB'){const r=suggest();if(!r.length)return alert('Keine passenden Teile gefunden. Wähle andere Filter oder füge mehr Teile hinzu.');sel=new Set(r.map(x=>x.id));return render()}
@@ -225,15 +227,27 @@ function askDate(){return new Promise(ok=>{let h='';
  for(let i=0;i<8;i++){const d=addD(new Date(),-i);h+=`<button class="btn ghost" data-d="${ymd(d)}">${i?i===1?'Gestern':DN[d.getDay()]+' '+d.getDate()+'.'+(d.getMonth()+1)+'.':'Heute'}</button>`}
  $('#wd .opts').innerHTML=h;wdRes=ok;$('#wd').showModal()})}
 $('#wd').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#wd').close();wdRes(b.dataset.d||null)};
-function planHtml(){const d0=new Date();d0.setHours(12,0,0,0);d0.setDate(d0.getDate()-((d0.getDay()+6)%7)+7*wk);const t0=ymd(new Date());
- const body=[...Array(7)].map((_,i)=>{const d=addD(d0,i),k=ymd(d),p=plan.find(x=>x.id===k),o=p&&outfits.find(x=>x.id===p.oid);
-  return `<button class="day ${k===t0?'today':''}" data-day="${k}"><b>${DN[d.getDay()]} ${d.getDate()}.${d.getMonth()+1}.</b>${o?`<span>${esc(o.name)}</span><div class="fig" style="margin:6px 0 0">${figure(outIts(o),'110px')}</div>`:'<small style="margin-left:8px">+ Outfit planen</small>'}</button>`}).join('');
- return `<h1>Wochenplaner</h1><div class="row" style="margin:0 0 12px"><button class="btn ghost" data-wk="-1">‹ Zurück</button><button class="btn ghost" data-wk="0">Diese Woche</button><button class="btn ghost" data-wk="1">Weiter ›</button></div><div class="week">${body}</div>`}
+const wornOn=k=>items.filter(x=>(x.log||[]).includes(k)||x.worn===k);
+async function unmarkWorn(id,d){const x=items.find(i=>i.id===id);if(!x)return;x.log=(x.log||[]).filter(v=>v!==d);
+ x.worn=x.log.length?[...x.log].sort().pop():(x.worn===d?'':x.worn);x.sinceWash=Math.max(0,(x.sinceWash||0)-1);await st('items','readwrite',s=>s.put(x))}
+const wnH=k=>{const w=wornOn(k);return w.length?`<h2 style="margin:0 0 6px;font-size:15px">Getragen</h2><div class="grid" style="margin-bottom:6px">${tiles(w,()=>'')}</div><small>Tippe ein Teil an, um es für diesen Tag zu entfernen.</small><h2 style="font-size:15px">Outfit planen</h2>`:''};
+function monthHtml(){const b=new Date();b.setDate(1);b.setHours(12,0,0,0);b.setMonth(b.getMonth()+mo);
+ const first=(b.getDay()+6)%7,dim=new Date(b.getFullYear(),b.getMonth()+1,0).getDate(),t0=ymd(new Date());
+ let c=['Mo','Di','Mi','Do','Fr','Sa','So'].map(d=>`<small class="mh">${d}</small>`).join('')+'<span></span>'.repeat(first);
+ for(let i=1;i<=dim;i++){const k=ymd(new Date(b.getFullYear(),b.getMonth(),i,12)),w=wornOn(k).length,pl=plan.some(x=>x.id===k);
+  c+=`<button class="mc ${k===t0?'today':''}" data-day="${k}"><b>${i}</b><span>${pl?'<i class="dp"></i>':''}${w?`<i class="dw"></i><small>${w}</small>`:''}</span></button>`}
+ return `<div class="row" style="margin:0 0 12px"><button class="btn ghost" data-mo="-1">‹</button><button class="btn ghost" data-mo="0">Heute</button><button class="btn ghost" data-mo="1">›</button></div><h2 style="margin-top:0">${b.toLocaleDateString('de-DE',{month:'long',year:'numeric'})}</h2><div class="mg">${c}</div><p><small>○ Outfit geplant · ● Teile getragen (Anzahl)</small></p>`}
+function planHtml(){const tog=`<div class="row" style="margin:0 0 12px"><button class="chip ${pv==='week'?'on':''}" data-pv="week">Woche</button><button class="chip ${pv==='month'?'on':''}" data-pv="month">Monat</button></div>`;
+ if(pv==='month')return '<h1>Planer</h1>'+tog+monthHtml();const d0=new Date();d0.setHours(12,0,0,0);d0.setDate(d0.getDate()-((d0.getDay()+6)%7)+7*wk);const t0=ymd(new Date());
+ const body=[...Array(7)].map((_,i)=>{const d=addD(d0,i),k=ymd(d),wn=wornOn(k),p=plan.find(x=>x.id===k),o=p&&outfits.find(x=>x.id===p.oid);
+  return `<button class="day ${k===t0?'today':''}" data-day="${k}"><b>${DN[d.getDay()]} ${d.getDate()}.${d.getMonth()+1}.</b>${wn.length?`<span>Getragen (${wn.length})</span>${o?`<small style="display:block">Geplant: ${esc(o.name)}</small>`:''}<div class="fig" style="margin:6px 0 0">${figure(wn,'110px')}</div>`:o?`<span>${esc(o.name)}</span><div class="fig" style="margin:6px 0 0">${figure(outIts(o),'110px')}</div>`:'<small style="margin-left:8px">+ Outfit planen</small>'}</button>`}).join('');
+ return `<h1>Planer</h1>${tog}<div class="row" style="margin:0 0 12px"><button class="btn ghost" data-wk="-1">‹ Zurück</button><button class="btn ghost" data-wk="0">Diese Woche</button><button class="btn ghost" data-wk="1">Weiter ›</button></div><div class="week">${body}</div>`}
 function openDay(k){dayKey=k;const p=plan.find(x=>x.id===k),d=new Date(k+'T12:00:00');
  $('#pdT').textContent=DN[d.getDay()]+', '+d.toLocaleDateString('de-DE');
- $('#pdL').innerHTML=outfits.length?outfits.map(o=>`<button class="day ${p&&p.oid===o.id?'today':''}" data-o="${o.id}"><b>${esc(o.name)}</b><div class="fig" style="margin:6px 0 0;justify-content:flex-start">${figure(outIts(o),'80px')}</div></button>`).join(''):'<p class="empty">Speichere zuerst im Tab „Outfits“ ein Outfit.</p>';
- $('#pdWorn').style.display=$('#pdDel').style.display=p?'':'none';$('#pd').showModal()}
+ $('#pdL').innerHTML=wnH(k)+(outfits.length?outfits.map(o=>`<button class="day ${p&&p.oid===o.id?'today':''}" data-o="${o.id}"><b>${esc(o.name)}</b><div class="fig" style="margin:6px 0 0;justify-content:flex-start">${figure(outIts(o),'80px')}</div></button>`).join(''):'<p class="empty">Speichere zuerst im Tab „Outfits“ ein Outfit.</p>');
+ $('#pdWorn').style.display=$('#pdDel').style.display=p?'':'none';if(!$('#pd').open)$('#pd').showModal()}
 $('#pd').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.classList.contains('tile')){if(confirm('Für diesen Tag als nicht getragen markieren?')){await unmarkWorn(b.dataset.id,dayKey);await load();openDay(dayKey)}return}
  if(b.dataset.o){await st('plan','readwrite',s=>s.put({id:dayKey,oid:b.dataset.o}));$('#pd').close();return load()}
  if(b.id==='pdDel'){await st('plan','readwrite',s=>s.delete(dayKey));$('#pd').close();return load()}
  if(b.id==='pdWorn'){if(dayKey>today())return alert('Dieser Tag liegt in der Zukunft.');const p=plan.find(x=>x.id===dayKey),o=p&&outfits.find(x=>x.id===p.oid);if(o){await markWorn(o.ids,dayKey);await load()}$('#pd').close();return alert('Als getragen markiert.')}
