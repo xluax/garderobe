@@ -46,7 +46,7 @@ dialog{border:0;border-radius:18px;background:var(--card);color:var(--ink);width
 dialog::backdrop{background:rgba(0,0,0,.5)}
 dialog img{width:100%;max-height:50vh;object-fit:contain;border-radius:10px;background:var(--bg)}
 input,select{width:100%;font:inherit;padding:11px;margin-top:10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
-small{color:var(--mute)}.day{display:block;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid transparent;border-radius:14px;padding:10px 12px;margin-bottom:8px;font:inherit}.day.today{border-color:var(--acc)}.day span{margin-left:8px}.mini{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}.mini img{width:44px;height:44px;object-fit:contain;background:var(--bg);border-radius:6px}label{display:block}dialog{max-height:90vh;overflow:auto}.fl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.fl select{width:auto;margin:0;padding:8px;font-size:14px}.tg{flex-wrap:wrap}.hf{position:absolute;top:3px;right:6px;color:var(--acc);font-size:16px;text-shadow:0 0 3px #0008}
+.fig{display:flex;justify-content:center;margin-bottom:10px}.week{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.week .day{margin:0}small{color:var(--mute)}.day{display:block;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid transparent;border-radius:14px;padding:10px 12px;margin-bottom:8px;font:inherit}.day.today{border-color:var(--acc)}.day span{margin-left:8px}.mini{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}.mini img{width:44px;height:44px;object-fit:contain;background:var(--bg);border-radius:6px}label{display:block}dialog{max-height:90vh;overflow:auto}.fl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.fl select{width:auto;margin:0;padding:8px;font-size:14px}.tg{flex-wrap:wrap}.hf{position:absolute;top:3px;right:6px;color:var(--acc);font-size:16px;text-shadow:0 0 3px #0008}
 </style>
 </head>
 <body>
@@ -107,13 +107,13 @@ function render(){
  }else if(tab==='plan'){h=planHtml()}else{
   const chosen=items.filter(x=>sel.has(x.id));
   h=`<h1>Outfits</h1><h2 style="margin-top:0">Neues Outfit</h2>
-   <div class="collage">${chosen.length?tiles(chosen,()=>'on'):'<p class="empty" style="grid-column:1/-1;margin:0">Wähle unten Teile aus.</p>'}</div>
+   ${chosen.length?`<div class="fig">${figure(chosen,'220px')}</div><div class="collage">${tiles(chosen,()=>'on')}</div>`:'<div class="collage"><p class="empty" style="grid-column:1/-1;margin:0">Wähle unten Teile aus.</p></div>'}
    <div class="row"><button class="btn acc" id="saveO" ${chosen.length?'':'disabled'}>Outfit speichern</button>${chosen.length?'<button class="btn ghost" id="clr">Leeren</button>':''}</div>
    <h2>Vorschlag</h2><div class="fl">${sel_('sw',TAGS.w,sug.w,'Wetter')}${sel_('so',TAGS.o,sug.o,'Anlass')}<button class="btn acc" id="sugB">Outfit vorschlagen</button></div><h2>Teile auswählen</h2>${chips()}${filters()}
    <div class="grid">${tiles(shown(),x=>sel.has(x.id)?'on':'')}</div>`;
   h+=`<h2>Gespeicherte Outfits</h2>`;
   h+=outfits.length?outfits.map(o=>{const its=o.ids.map(i=>items.find(x=>x.id===i)).filter(Boolean);
-   return `<div class="saved"><b>${esc(o.name)}</b><div class="grid">${its.map(x=>`<div class="tile"><img src="${x.img}" alt=""></div>`).join('')}</div>
+   return `<div class="saved"><b>${esc(o.name)}</b><div class="fig" style="margin-top:8px">${figure(its,'150px')}</div>
    <button class="btn ghost" data-wear="${o.id}">Getragen am …</button> <button class="btn ghost" data-edit="${o.id}">Bearbeiten</button> <button class="btn ghost" data-del="${o.id}">Löschen</button></div>`}).join('')
    :'<p class="empty">Noch keine Outfits gespeichert.</p>';
  }
@@ -210,17 +210,30 @@ function askDate(){return new Promise(ok=>{let h='';
 $('#wd').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#wd').close();wdRes(b.dataset.d||null)};
 function planHtml(){const d0=new Date();d0.setHours(12,0,0,0);d0.setDate(d0.getDate()-((d0.getDay()+6)%7)+7*wk);const t0=ymd(new Date());
  const body=[...Array(7)].map((_,i)=>{const d=addD(d0,i),k=ymd(d),p=plan.find(x=>x.id===k),o=p&&outfits.find(x=>x.id===p.oid);
-  return `<button class="day ${k===t0?'today':''}" data-day="${k}"><b>${DN[d.getDay()]} ${d.getDate()}.${d.getMonth()+1}.</b>${o?`<span>${esc(o.name)}</span><div class="mini">${outIts(o).map(x=>`<img src="${x.img}" alt="">`).join('')}</div>`:'<small style="margin-left:8px">+ Outfit planen</small>'}</button>`}).join('');
- return `<h1>Wochenplaner</h1><div class="row" style="margin:0 0 12px"><button class="btn ghost" data-wk="-1">‹ Zurück</button><button class="btn ghost" data-wk="0">Diese Woche</button><button class="btn ghost" data-wk="1">Weiter ›</button></div>${body}`}
+  return `<button class="day ${k===t0?'today':''}" data-day="${k}"><b>${DN[d.getDay()]} ${d.getDate()}.${d.getMonth()+1}.</b>${o?`<span>${esc(o.name)}</span><div class="fig" style="margin:6px 0 0">${figure(outIts(o),'110px')}</div>`:'<small style="margin-left:8px">+ Outfit planen</small>'}</button>`}).join('');
+ return `<h1>Wochenplaner</h1><div class="row" style="margin:0 0 12px"><button class="btn ghost" data-wk="-1">‹ Zurück</button><button class="btn ghost" data-wk="0">Diese Woche</button><button class="btn ghost" data-wk="1">Weiter ›</button></div><div class="week">${body}</div>`}
 function openDay(k){dayKey=k;const p=plan.find(x=>x.id===k),d=new Date(k+'T12:00:00');
  $('#pdT').textContent=DN[d.getDay()]+', '+d.toLocaleDateString('de-DE');
- $('#pdL').innerHTML=outfits.length?outfits.map(o=>`<button class="day ${p&&p.oid===o.id?'today':''}" data-o="${o.id}"><b>${esc(o.name)}</b><div class="mini">${outIts(o).map(x=>`<img src="${x.img}" alt="">`).join('')}</div></button>`).join(''):'<p class="empty">Speichere zuerst im Tab „Outfits“ ein Outfit.</p>';
+ $('#pdL').innerHTML=outfits.length?outfits.map(o=>`<button class="day ${p&&p.oid===o.id?'today':''}" data-o="${o.id}"><b>${esc(o.name)}</b><div class="fig" style="margin:6px 0 0;justify-content:flex-start">${figure(outIts(o),'80px')}</div></button>`).join(''):'<p class="empty">Speichere zuerst im Tab „Outfits“ ein Outfit.</p>';
  $('#pdWorn').style.display=$('#pdDel').style.display=p?'':'none';$('#pd').showModal()}
 $('#pd').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
  if(b.dataset.o){await st('plan','readwrite',s=>s.put({id:dayKey,oid:b.dataset.o}));$('#pd').close();return load()}
  if(b.id==='pdDel'){await st('plan','readwrite',s=>s.delete(dayKey));$('#pd').close();return load()}
  if(b.id==='pdWorn'){if(dayKey>today())return alert('Dieser Tag liegt in der Zukunft.');const p=plan.find(x=>x.id===dayKey),o=p&&outfits.find(x=>x.id===p.oid);if(o){await markWorn(o.ids,dayKey);await load()}$('#pd').close();return alert('Als getragen markiert.')}
  if(b.id==='pdOk')$('#pd').close()};
+const SLOT={Mütze:[72,2,56,34],Schal:[70,42,60,30],Gürtel:[62,163,76,20],Uhr:[6,150,36,36],Tasche:[156,180,40,50]};
+const HEAVY=['Pullover','Sweatshirt','Hoodie','Zip-Hoodie'];
+function figure(its,w){
+ const im=(x,[a,b,c,d])=>`<image href="${x.img}" x="${a}" y="${b}" width="${c}" height="${d}" preserveAspectRatio="xMidYMid meet" style="mix-blend-mode:multiply"/>`;
+ const g=c=>its.filter(x=>x.cat===c),jack=g('Jacken');
+ const tops=g('Oberteile').sort((a,b)=>HEAVY.includes(a.sub)-HEAVY.includes(b.sub));
+ let h='';
+ g('Hosen').forEach(x=>h+=im(x,[55,168,90,130]));
+ g('Schuhe').forEach(x=>h+=im(x,[45,296,110,54]));
+ jack.forEach(x=>h+=im(x,[35,52,130,135]));
+ tops.forEach((x,i)=>{const k=jack.length?[60,68,80,98]:[45,56,110,120];h+=im(x,[k[0]-i*5,k[1]-i*4,k[2]+i*10,k[3]+i*8])});
+ g('Accessoires').filter(x=>SLOT[x.sub]).forEach(x=>h+=im(x,SLOT[x.sub]));
+ return `<svg viewBox="0 0 200 360" role="img" aria-label="Outfit" style="width:${w};max-width:100%;background:#F1F1EC;border-radius:12px;display:block"><g fill="#E0E0D8"><circle cx="100" cy="30" r="19"/><rect x="92" y="46" width="16" height="14" rx="5"/><path d="M58 62Q100 54 142 62L152 135L140 137L136 100L134 172L66 172L64 100L60 137L48 135Z"/><path d="M66 170L134 170L128 296L106 296L100 200L94 296L72 296Z"/></g>${h}</svg>`}
 function suggest(){
  const days=x=>x.worn?Math.min(90,(Date.now()-new Date(x.worn))/864e5):90;
  const has=(x,k,v)=>((x.tags||{})[k]||[]).includes(v);
