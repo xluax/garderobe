@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Garderobe</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Garderobe">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#E4EADF">
+<style>
+:root{--bg:#E4EADF;--card:#F7F9F4;--ink:#17231C;--mute:#5E6C62;--acc:#E0A526;--line:#C9D2C4;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#17231C;--card:#223229;--ink:#E8EEE3;--mute:#9DAE9F;--line:#33463A;color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 "Avenir Next",system-ui,sans-serif}
+body{padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:28px;margin:8px 0 14px;letter-spacing:-.02em}
+h2{font-size:18px;margin:24px 0 10px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px}
+.chip{flex:none;border:1.5px solid var(--line);background:none;color:var(--ink);border-radius:99px;padding:7px 14px;font:inherit;font-size:14px}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{position:relative;aspect-ratio:1;background:var(--card);border-radius:12px;overflow:hidden;border:2px solid transparent;padding:0}
+.tile img{width:100%;height:100%;object-fit:contain;display:block}
+.tile.on{border-color:var(--acc)}
+.tile .n{position:absolute;left:0;right:0;bottom:0;font-size:11px;padding:3px 6px;background:rgba(23,35,28,.6);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{color:var(--mute);padding:28px 8px;text-align:center}
+.btn{border:0;border-radius:12px;padding:12px 18px;font:inherit;font-weight:600;background:var(--ink);color:var(--bg)}
+.btn.acc{background:var(--acc);color:#17231C}
+.btn.ghost{background:none;border:1.5px solid var(--line);color:var(--ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;color:var(--mute);font:inherit;font-size:13px;padding:14px 0}
+nav button.on{color:var(--ink);font-weight:700}
+.fab{position:fixed;right:18px;bottom:calc(74px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;border:0;background:var(--acc);color:#17231C;font-size:30px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.collage{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--card);border-radius:14px;padding:8px;min-height:110px}
+.collage .tile{background:var(--bg)}
+.saved{background:var(--card);border-radius:14px;padding:10px;margin-bottom:10px}
+.saved .grid{grid-template-columns:repeat(4,1fr);gap:5px;margin:8px 0}
+.saved b{display:block}
+dialog{border:0;border-radius:18px;background:var(--card);color:var(--ink);width:min(92vw,400px);padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog img{width:100%;max-height:50vh;object-fit:contain;border-radius:10px;background:var(--bg)}
+input,select{width:100%;font:inherit;padding:11px;margin-top:10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+small{color:var(--mute)}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<button class="fab" id="fab" aria-label="Kleidungsstück hinzufügen">+</button>
+<nav><button data-tab="wardrobe">Kleiderschrank</button><button data-tab="outfits">Outfits</button></nav>
+<input type="file" id="file" accept="image/*" hidden>
+<input type="file" id="imp" accept="application/json" hidden>
+
+<dialog id="add"><img id="prev" alt="Vorschau">
+<select id="cat"></select><input id="nm" placeholder="Name (optional), z. B. blaue Jeans">
+<div class="row"><button class="btn acc" id="addOk">Speichern</button><button class="btn ghost" id="addNo">Abbrechen</button></div></dialog>
+<dialog id="view"><img id="big" alt=""><p id="vn"></p>
+<div class="row"><button class="btn ghost" id="vDel">Löschen</button><button class="btn" id="vOk">Schließen</button></div></dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+const CATS=['Oberteile','Hosen','Kleider','Jacken','Schuhe','Accessoires'];
+let items=[],outfits=[],tab='wardrobe',filter='Alle',sel=new Set(),pend=null,viewId=null;
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dbp=new Promise((ok,no)=>{const r=indexedDB.open('garderobe',1);
+ r.onupgradeneeded=()=>{r.result.createObjectStore('items',{keyPath:'id'});r.result.createObjectStore('outfits',{keyPath:'id'})};
+ r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+async function st(n,mode,fn){const db=await dbp;return new Promise((ok,no)=>{const t=db.transaction(n,mode);const o=fn(t.objectStore(n));t.oncomplete=()=>ok(o&&o.result);t.onerror=()=>no(t.error)})}
+const load=async()=>{items=(await st('items','readonly',s=>s.getAll())).sort((a,b)=>b.t-a.t);outfits=(await st('outfits','readonly',s=>s.getAll())).sort((a,b)=>b.t-a.t);render()};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+function resize(f,max=800){return new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image();
+ i.onload=()=>{const k=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement('canvas');
+  c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);
+  URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.82))};i.onerror=no;i.src=u})}
+
+function tiles(list,cls){return list.map(x=>`<button class="tile ${cls(x)}" data-id="${x.id}"><img src="${x.img}" alt="${esc(x.name||x.cat)}">${x.name?`<span class="n">${esc(x.name)}</span>`:''}</button>`).join('')}
+function chips(){return `<div class="chips">${['Alle',...CATS].map(c=>`<button class="chip ${c===filter?'on':''}" data-f="${c}">${c}</button>`).join('')}</div>`}
+const shown=()=>filter==='Alle'?items:items.filter(x=>x.cat===filter);
+
+function render(){
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+ $('#fab').style.display=tab==='wardrobe'?'':'none';
+ let h='';
+ if(tab==='wardrobe'){
+  h=`<h1>Kleiderschrank</h1>${chips()}`;
+  h+=items.length?`<div class="grid">${tiles(shown(),()=>'' )}</div>${shown().length?'':'<p class="empty">Hier ist noch nichts.</p>'}`
+   :`<p class="empty">Noch leer. Tippe auf +, um dein erstes Kleidungsstück zu fotografieren.</p>`;
+  h+=`<h2>Sicherung</h2><small>Deine Daten liegen nur auf diesem iPhone. Sichere sie regelmäßig als Datei.</small>
+   <div class="row"><button class="btn ghost" id="exp">Exportieren</button><button class="btn ghost" id="impB">Importieren</button></div>`;
+ }else{
+  const chosen=items.filter(x=>sel.has(x.id));
+  h=`<h1>Outfits</h1><h2 style="margin-top:0">Neues Outfit</h2>
+   <div class="collage">${chosen.length?tiles(chosen,()=>'on'):'<p class="empty" style="grid-column:1/-1;margin:0">Wähle unten Teile aus.</p>'}</div>
+   <div class="row"><button class="btn acc" id="saveO" ${chosen.length?'':'disabled'}>Outfit speichern</button>${chosen.length?'<button class="btn ghost" id="clr">Leeren</button>':''}</div>
+   <h2>Teile auswählen</h2>${chips()}
+   <div class="grid">${tiles(shown(),x=>sel.has(x.id)?'on':'')}</div>`;
+  h+=`<h2>Gespeicherte Outfits</h2>`;
+  h+=outfits.length?outfits.map(o=>{const its=o.ids.map(i=>items.find(x=>x.id===i)).filter(Boolean);
+   return `<div class="saved"><b>${esc(o.name)}</b><div class="grid">${its.map(x=>`<div class="tile"><img src="${x.img}" alt=""></div>`).join('')}</div>
+   <button class="btn ghost" data-edit="${o.id}">Bearbeiten</button> <button class="btn ghost" data-del="${o.id}">Löschen</button></div>`}).join('')
+   :'<p class="empty">Noch keine Outfits gespeichert.</p>';
+ }
+ $('#app').innerHTML=h;
+}
+
+$('#app').addEventListener('click',async e=>{
+ const t=e.target.closest('button');if(!t)return;
+ if(t.dataset.f){filter=t.dataset.f;return render()}
+ if(t.classList.contains('tile')){const id=t.dataset.id;
+  if(tab==='wardrobe'){const x=items.find(i=>i.id===id);viewId=id;$('#big').src=x.img;$('#vn').textContent=(x.name?x.name+' · ':'')+x.cat;$('#view').showModal()}
+  else{sel.has(id)?sel.delete(id):sel.add(id);render()}return}
+ if(t.id==='clr'){sel.clear();return render()}
+ if(t.id==='saveO'){const name=prompt('Name für das Outfit?',`Outfit ${outfits.length+1}`);if(!name)return;
+  await st('outfits','readwrite',s=>s.put({id:uid(),name,ids:[...sel],t:Date.now()}));sel.clear();return load()}
+ if(t.dataset.del){if(confirm('Outfit löschen?')){await st('outfits','readwrite',s=>s.delete(t.dataset.del));load()}return}
+ if(t.dataset.edit){const o=outfits.find(x=>x.id===t.dataset.edit);sel=new Set(o.ids);await st('outfits','readwrite',s=>s.delete(o.id));await load();scrollTo(0,0);return}
+ if(t.id==='exp')return exportData();
+ if(t.id==='impB')return $('#imp').click();
+});
+document.querySelector('nav').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;filter='Alle';render();scrollTo(0,0)}};
+$('#fab').onclick=()=>$('#file').click();
+$('#cat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');
+$('#file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{pend=await resize(f)}catch{return alert('Das Bild konnte nicht gelesen werden.')}
+ $('#prev').src=pend;$('#nm').value='';if(CATS.includes(filter))$('#cat').value=filter;$('#add').showModal()};
+$('#addNo').onclick=()=>$('#add').close();
+$('#addOk').onclick=async()=>{await st('items','readwrite',s=>s.put({id:uid(),img:pend,cat:$('#cat').value,name:$('#nm').value.trim(),t:Date.now()}));$('#add').close();load()};
+$('#vOk').onclick=()=>$('#view').close();
+$('#vDel').onclick=async()=>{if(!confirm('Dieses Teil löschen?'))return;await st('items','readwrite',s=>s.delete(viewId));sel.delete(viewId);$('#view').close();load()};
+
+async function exportData(){
+ const blob=new Blob([JSON.stringify({v:1,items,outfits})],{type:'application/json'});
+ const file=new File([blob],`garderobe-${new Date().toISOString().slice(0,10)}.json`,{type:'application/json'});
+ try{if(navigator.canShare&&navigator.canShare({files:[file]}))return await navigator.share({files:[file]})}catch(e){if(e.name==='AbortError')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click()}
+$('#imp').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{const d=JSON.parse(await f.text());if(!Array.isArray(d.items))throw 0;
+  for(const x of d.items)await st('items','readwrite',s=>s.put(x));
+  for(const o of d.outfits||[])await st('outfits','readwrite',s=>s.put(o));
+  load();alert('Sicherung importiert.')}catch{alert('Diese Datei ist keine gültige Garderobe-Sicherung.')}};
+
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{});
+load();
+</script>
+</body>
+</html>
