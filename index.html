@@ -53,13 +53,13 @@ small{color:var(--mute)}.day{display:block;width:100%;text-align:left;background
 <main id="app"></main>
 <button class="fab" id="fab" aria-label="Kleidungsstück hinzufügen">+</button>
 <nav><button data-tab="wardrobe">Kleiderschrank</button><button data-tab="outfits">Outfits</button><button data-tab="plan">Planer</button></nav>
-<input type="file" id="file" accept="image/*" hidden>
+<input type="file" id="file" accept="image/*" multiple hidden>
 <input type="file" id="imp" hidden>
 <dialog id="wd"><h2 style="margin-top:0">Getragen am …</h2><div class="row opts"></div><div class="row"><button class="btn" id="wdNo">Abbrechen</button></div></dialog>
 <dialog id="pd"><h2 id="pdT" style="margin-top:0"></h2><div id="pdL"></div><div class="row"><button class="btn ghost" id="pdWorn">Als getragen markieren</button><button class="btn ghost" id="pdDel">Entfernen</button><button class="btn" id="pdOk">Schließen</button></div></dialog>
 
-<dialog id="add"><img id="prev" alt="Vorschau"><div id="form"></div>
-<div class="row"><button class="btn acc" id="addOk">Speichern</button><button class="btn ghost" id="addNo">Abbrechen</button></div></dialog>
+<dialog id="add"><small id="qn"></small><img id="prev" alt="Vorschau"><div id="form"></div>
+<div class="row"><button class="btn acc" id="addOk">Speichern</button><button class="btn ghost" id="addNo">Abbrechen</button><button class="btn ghost" id="addAll" style="display:none">Rest abbrechen</button></div></dialog>
 <dialog id="view"><img id="big" alt=""><div id="vi"></div>
 <div class="row"><button class="btn ghost" id="vFav">♥</button><button class="btn ghost" id="vWorn">Getragen am …</button><button class="btn ghost" id="vEdit">Bearbeiten</button><button class="btn ghost" id="vDel">Löschen</button><button class="btn" id="vOk">Schließen</button></div></dialog>
 
@@ -151,7 +151,7 @@ function formHtml(x){const t=x.tags||{};
  <label><small>Gekauft am</small><input id="bt" type="date" value="${x.bought||''}"></label>
  ${['w','o','c'].map(k=>`<small>${TL[k]}</small><div class="chips tg" data-k="${k}">${TAGS[k].map(v=>`<button type="button" class="chip ${(t[k]||[]).includes(v)?'on':''}" data-v="${v}">${v}</button>`).join('')}</div>`).join('')}`}
 function fillSub(cur){$('#sub').innerHTML=CATS[$('#cat').value].map(s=>`<option ${s===cur?'selected':''}>${s}</option>`).join('')}
-function openForm(x,img){editId=x.id||null;pend=img;$('#prev').src=img;$('#form').innerHTML=formHtml(x);fillSub(x.sub);$('#add').showModal()}
+function openForm(x,img){editId=x.id||null;pend=img;$('#qn').textContent='';$('#addNo').textContent='Abbrechen';$('#addAll').style.display='none';$('#prev').src=img;$('#form').innerHTML=formHtml(x);fillSub(x.sub);if(!$('#add').open)$('#add').showModal();$('#add').scrollTop=0}
 $('#form').onclick=e=>{const b=e.target.closest('.chip');if(b)b.classList.toggle('on')};
 $('#form').onchange=e=>{if(e.target.id==='cat')fillSub()};
 function showView(){const x=items.find(i=>i.id===viewId),t=x.tags||{};$('#big').src=x.img;
@@ -161,14 +161,25 @@ const upd=async f=>{const x=items.find(i=>i.id===viewId);f(x);await st('items','
 $('#vFav').onclick=()=>upd(x=>x.fav=!x.fav);
 $('#vWorn').onclick=async()=>{const d=await askDate();if(d){await markWorn([viewId],d);await load();showView()}};
 $('#vEdit').onclick=()=>{const x=items.find(i=>i.id===viewId);$('#view').close();openForm(x,x.img)};
-$('#file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
- try{pend=await resize(f)}catch{return alert('Das Bild konnte nicht gelesen werden.')}
- openForm({cat:CATS[F.cat]?F.cat:'Oberteile',sub:F.sub},pend)};
-$('#addNo').onclick=()=>$('#add').close();
+let queue=[],qTotal=0,last={};
+$('#file').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;
+ queue=[];let bad=0;
+ for(const f of fs){try{queue.push(await resize(f))}catch{bad++}}
+ if(bad)alert(`${bad} Bild(er) konnten nicht gelesen werden.`);
+ qTotal=queue.length;last={cat:CATS[F.cat]?F.cat:'Oberteile',sub:F.sub,tags:{}};nextQ()};
+function nextQ(){if(!queue.length){$('#add').close();return load()}
+ const img=queue.shift(),n=qTotal-queue.length;
+ openForm({...last},img);
+ if(qTotal>1)$('#qn').textContent=`Bild ${n} von ${qTotal}`;
+ $('#addAll').style.display=queue.length?'':'none';
+ $('#addNo').textContent=qTotal>1?'Überspringen':'Abbrechen'}
+$('#addNo').onclick=()=>{if(queue.length)return nextQ();$('#add').close();load()};
+$('#addAll').onclick=()=>{queue=[];$('#add').close();load()};
 $('#addOk').onclick=async()=>{const o=items.find(i=>i.id===editId)||{},tags={};
  document.querySelectorAll('#form .tg').forEach(g=>tags[g.dataset.k]=[...g.querySelectorAll('.chip.on')].map(b=>b.dataset.v));
  const x={...o,id:o.id||uid(),img:o.img||pend,t:o.t||Date.now(),cat:$('#cat').value,sub:$('#sub').value,name:$('#nm').value.trim(),bought:$('#bt').value,tags,fav:!!o.fav,worn:o.worn||''};
- await st('items','readwrite',s=>s.put(x));$('#add').close();load()};
+ await st('items','readwrite',s=>s.put(x));last={cat:x.cat,sub:x.sub,tags:x.tags};
+ if(queue.length)return nextQ();$('#add').close();load()};
 $('#vOk').onclick=()=>$('#view').close();
 $('#vDel').onclick=async()=>{if(!confirm('Dieses Teil löschen?'))return;await st('items','readwrite',s=>s.delete(viewId));sel.delete(viewId);$('#view').close();load()};
 
