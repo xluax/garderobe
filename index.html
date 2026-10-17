@@ -46,7 +46,7 @@ dialog{border:0;border-radius:18px;background:var(--card);color:var(--ink);width
 dialog::backdrop{background:rgba(0,0,0,.5)}
 dialog img{width:100%;max-height:50vh;object-fit:contain;border-radius:10px;background:var(--bg)}
 input,select{width:100%;font:inherit;padding:11px;margin-top:10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
-.fig{display:flex;justify-content:center;margin-bottom:10px}.week{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.week .day{margin:0}#bgC{display:block;width:100%;height:auto;max-height:55vh;object-fit:contain;border-radius:10px;background:repeating-conic-gradient(#c9c9c9 0 25%,#eee 0 50%) 0 0/20px 20px}.hw{position:absolute;top:3px;left:5px;font-size:15px}.tile.dirty img{opacity:.45}.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:14px}.bar span{width:110px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar div{flex:1;background:var(--card);border-radius:6px;height:14px}.bar i{display:block;height:100%;background:var(--acc);border-radius:6px}.mg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.mh{text-align:center}.mc{aspect-ratio:1;background:var(--card);border:2px solid transparent;border-radius:10px;color:var(--ink);font:inherit;padding:3px 2px;display:flex;flex-direction:column;align-items:center;justify-content:space-between}.mc.today{border-color:var(--acc)}.mc span{display:flex;gap:3px;align-items:center;height:14px}.dp{width:8px;height:8px;border-radius:50%;border:2px solid var(--acc)}.dw{width:8px;height:8px;border-radius:50%;background:var(--acc)}.mc small{font-size:10px}small{color:var(--mute)}.day{display:block;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid transparent;border-radius:14px;padding:10px 12px;margin-bottom:8px;font:inherit}.day.today{border-color:var(--acc)}.day span{margin-left:8px}.mini{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}.mini img{width:44px;height:44px;object-fit:contain;background:var(--bg);border-radius:6px}label{display:block}dialog{max-height:90vh;overflow:auto}.fl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.fl select{width:auto;margin:0;padding:8px;font-size:14px}.tg{flex-wrap:wrap}.hf{position:absolute;top:3px;right:6px;color:var(--acc);font-size:16px;text-shadow:0 0 3px #0008}
+.fig{display:flex;justify-content:center;margin-bottom:10px}.week{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.week .day{margin:0}#bgC{display:block;width:100%;height:auto;max-height:55vh;object-fit:contain;border-radius:10px;background:repeating-conic-gradient(#c9c9c9 0 25%,#eee 0 50%) 0 0/20px 20px}.hw{position:absolute;top:3px;left:5px;font-size:15px}.tile.dirty img{opacity:.45}.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:14px}.bar span{width:110px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar div{flex:1;background:var(--card);border-radius:6px;height:14px}.bar i{display:block;height:100%;background:var(--acc);border-radius:6px}.mg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.mh{text-align:center}.mc{aspect-ratio:1;background:var(--card);border:2px solid transparent;border-radius:10px;color:var(--ink);font:inherit;padding:3px 2px;display:flex;flex-direction:column;align-items:center;justify-content:space-between}.mc.today{border-color:var(--acc)}.mc span{display:flex;gap:3px;align-items:center;height:14px}.dp{width:8px;height:8px;border-radius:50%;border:2px solid var(--acc)}.dw{width:8px;height:8px;border-radius:50%;background:var(--acc)}.mc small{font-size:10px}.fl input[type=search]{flex:1 1 100%;margin:0;padding:8px;font-size:14px}small{color:var(--mute)}.day{display:block;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid transparent;border-radius:14px;padding:10px 12px;margin-bottom:8px;font:inherit}.day.today{border-color:var(--acc)}.day span{margin-left:8px}.mini{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}.mini img{width:44px;height:44px;object-fit:contain;background:var(--bg);border-radius:6px}label{display:block}dialog{max-height:90vh;overflow:auto}.fl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.fl select{width:auto;margin:0;padding:8px;font-size:14px}.tg{flex-wrap:wrap}.hf{position:absolute;top:3px;right:6px;color:var(--acc);font-size:16px;text-shadow:0 0 3px #0008}
 </style>
 </head>
 <body>
@@ -75,13 +75,13 @@ const TL={w:'Wetter',o:'Anlass',c:'Farbe'};
 const SORTS={new:'Neueste zuerst',old:'Älteste zuerst',worn:'Länger nicht getragen',wornr:'Zuletzt getragen',bought:'Zuletzt gekauft',name:'Name A–Z',cost:'Preis (hoch zuerst)',wc:'Meistgetragen'};
 const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const fd=d=>d?new Date(d).toLocaleDateString('de-DE'):'–';
-let items=[],outfits=[],tab='wardrobe',F={cat:'Alle',sub:'',w:'',o:'',c:'',fav:false,b:'',wa:'',sort:'new'},editId=null,sel=new Set(),pend=null,viewId=null,selMode=false,dsel=new Set(),plan=[],wk=0,dayKey=null,wdRes=null,pv='week',mo=0,sug={w:'',o:''};
+let items=[],outfits=[],tab='wardrobe',F={cat:'Alle',sub:'',w:'',o:'',c:'',fav:false,b:'',wa:'',fo:'',q:'',sort:'new'},editId=null,sel=new Set(),pend=null,viewId=null,selMode=false,dsel=new Set(),plan=[],wk=0,dayKey=null,wdRes=null,pv='week',mo=0,sug={w:'',o:'',rain:false,temp:null,info:''},lastSug=null,pkDays=3,pack=[],FB=[],WISH=[];
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dbp=new Promise((ok,no)=>{const r=indexedDB.open('garderobe',3);
  r.onupgradeneeded=()=>{const d=r.result;['items','outfits','plan','lists'].forEach(n=>d.objectStoreNames.contains(n)||d.createObjectStore(n,{keyPath:'id'}))};
  r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
 async function st(n,mode,fn){const db=await dbp;return new Promise((ok,no)=>{const t=db.transaction(n,mode);const o=fn(t.objectStore(n));t.oncomplete=()=>ok(o&&o.result);t.onerror=()=>no(t.error)})}
-const load=async()=>{items=(await st('items','readonly',s=>s.getAll())).sort((a,b)=>b.t-a.t);outfits=(await st('outfits','readonly',s=>s.getAll())).sort((a,b)=>b.t-a.t);plan=await st('plan','readonly',s=>s.getAll());const L=await st('lists','readonly',s=>s.get('lists'));if(L){BRANDS=L.brand||[];if(L.washN)WASHN=L.washN;['w','o','c'].forEach(k=>{if(L[k])TAGS[k]=L[k]})}render()};
+const load=async()=>{items=(await st('items','readonly',s=>s.getAll())).sort((a,b)=>b.t-a.t);outfits=(await st('outfits','readonly',s=>s.getAll())).sort((a,b)=>b.t-a.t);plan=await st('plan','readonly',s=>s.getAll());const L=await st('lists','readonly',s=>s.get('lists'));if(L){BRANDS=L.brand||[];if(L.washN)WASHN=L.washN;if(L.fb)FB=L.fb;if(L.wish)WISH=L.wish;['w','o','c'].forEach(k=>{if(L[k])TAGS[k]=L[k]})}render()};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 function resize(f,max=800){return new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image();
@@ -93,17 +93,17 @@ function tiles(list,cls){return list.map(x=>`<button class="tile ${cls(x)} ${x.d
 function chips(){return `<div class="chips">${['Alle',...Object.keys(CATS)].map(c=>`<button class="chip ${c===F.cat?'on':''}" data-f="${c}">${c}</button>`).join('')}</div>`}
 const sel_=(k,o,v,l)=>`<select data-s="${k}"><option value="">${l}</option>${o.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('')}</select>`;
 function filters(){const subs=CATS[F.cat]||[];
- return `<div class="fl">${subs.length?sel_('sub',subs,F.sub,'Alle Typen'):''}${['w','o','c'].map(k=>sel_(k,TAGS[k],F[k],TL[k])).join('')}${BRANDS.length?sel_('b',BRANDS,F.b,'Marke'):''}${sel_('wa',['Sauber','In der Wäsche'],F.wa,'Wäsche')}<select data-s="sort">${Object.entries(SORTS).map(([k,v])=>`<option value="${k}" ${k===F.sort?'selected':''}>${v}</option>`).join('')}</select><button class="chip ${F.fav?'on':''}" data-fav="1">♥ Favoriten</button></div>`}
+ return `<div class="fl"><input data-s="q" type="search" placeholder="Suchen (Name, Marke, ID, Material …)" value="${esc(F.q)}">${subs.length?sel_('sub',subs,F.sub,'Alle Typen'):''}${['w','o','c'].map(k=>sel_(k,TAGS[k],F[k],TL[k])).join('')}${BRANDS.length?sel_('b',BRANDS,F.b,'Marke'):''}${sel_('fo',FORMS,F.fo,'Formalität')}${sel_('wa',['Sauber','In der Wäsche'],F.wa,'Wäsche')}<select data-s="sort">${Object.entries(SORTS).map(([k,v])=>`<option value="${k}" ${k===F.sort?'selected':''}>${v}</option>`).join('')}</select><button class="chip ${F.fav?'on':''}" data-fav="1">♥ Favoriten</button></div>`}
 function shown(){const d=(a,b)=>(a||'').localeCompare(b||'');
  const S={new:(a,b)=>b.t-a.t,old:(a,b)=>a.t-b.t,worn:(a,b)=>d(a.worn,b.worn),wornr:(a,b)=>d(b.worn,a.worn),bought:(a,b)=>d(b.bought,a.bought),name:(a,b)=>d(a.name,b.name),cost:(a,b)=>(+b.cost||0)-(+a.cost||0),wc:(a,b)=>cnt(b)-cnt(a)};
- return items.filter(x=>(F.cat==='Alle'||x.cat===F.cat)&&(!F.sub||x.sub===F.sub)&&(!F.fav||x.fav)&&(!F.b||x.brand===F.b)&&(!F.wa||(F.wa==='Sauber')===!x.dirty)&&['w','o','c'].every(k=>!F[k]||((x.tags||{})[k]||[]).includes(F[k]))).sort(S[F.sort])}
+ return items.filter(x=>(F.cat==='Alle'||x.cat===F.cat)&&(!F.sub||x.sub===F.sub)&&(!F.fav||x.fav)&&(!F.b||x.brand===F.b)&&(!F.wa||(F.wa==='Sauber')===!x.dirty)&&(!F.fo||x.form===F.fo)&&(!F.q||hay(x).includes(F.q.trim().toLowerCase()))&&['w','o','c'].every(k=>!F[k]||((x.tags||{})[k]||[]).includes(F[k]))).sort(S[F.sort])}
 
 function render(){
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
  $('#fab').style.display=tab==='wardrobe'&&!selMode?'':'none';
  let h='';
  if(tab==='wardrobe'){
-  h=`<h1>Kleiderschrank</h1>${items.length?`<div class="row" style="margin:0 0 12px"><button class="btn ghost" id="selT">${selMode?'Fertig':'Auswählen'}</button>${selMode?`<button class="btn ghost" id="selAll">Alle auswählen</button><button class="btn acc" id="delSel" ${dsel.size?'':'disabled'}>Löschen (${dsel.size})</button>`:''}</div>`:''}${chips()}${filters()}${F.wa==='In der Wäsche'&&shown().length?'<div class="row" style="margin:0 0 12px"><button class="btn acc" id="washAll">Alles gewaschen</button></div>':''}`;
+  h=`<h1>Kleiderschrank</h1>${backupNote()}${items.length?`<div class="row" style="margin:0 0 12px"><button class="btn ghost" id="selT">${selMode?'Fertig':'Auswählen'}</button>${selMode?`<button class="btn ghost" id="selAll">Alle auswählen</button><button class="btn acc" id="delSel" ${dsel.size?'':'disabled'}>Löschen (${dsel.size})</button>`:''}</div>`:''}${chips()}${filters()}${F.wa==='In der Wäsche'&&shown().length?'<div class="row" style="margin:0 0 12px"><button class="btn acc" id="washAll">Alles gewaschen</button></div>':''}`;
   h+=items.length?`<div class="grid">${tiles(shown(),x=>selMode&&dsel.has(x.id)?'on':'')}</div>${shown().length?'':'<p class="empty">Hier ist noch nichts.</p>'}`
    :`<p class="empty">Noch leer. Tippe auf +, um dein erstes Kleidungsstück zu fotografieren.</p>`;
   h+=`<h2>Sicherung</h2><small>Deine Daten liegen nur auf diesem iPhone. Sichere sie regelmäßig als Datei.</small>
@@ -113,7 +113,9 @@ function render(){
   h=`<h1>Outfits</h1><h2 style="margin-top:0">Neues Outfit</h2>
    ${chosen.length?`<div class="fig">${figure(chosen,'220px')}</div><div class="collage">${tiles(chosen,()=>'on')}</div>`:'<div class="collage"><p class="empty" style="grid-column:1/-1;margin:0">Wähle unten Teile aus.</p></div>'}
    <div class="row"><button class="btn acc" id="saveO" ${chosen.length?'':'disabled'}>Outfit speichern</button>${chosen.length?'<button class="btn ghost" id="clr">Leeren</button>':''}</div>
-   <h2>Vorschlag</h2><div class="fl">${sel_('sw',TAGS.w,sug.w,'Wetter')}${sel_('so',TAGS.o,sug.o,'Anlass')}<button class="btn acc" id="sugB">Outfit vorschlagen</button></div><h2>Teile auswählen</h2>${chips()}${filters()}
+   <h2>Vorschlag</h2><div class="fl">${sel_('sw',TAGS.w,sug.w,'Wetter')}${sel_('so',TAGS.o,sug.o,'Anlass')}<button class="btn ghost" id="wxB">☁ Wetter heute</button><button class="btn acc" id="sugB">Outfit vorschlagen</button></div>${sug.info?`<small>${esc(sug.info)}</small>`:''}${fbBar()}
+   <h2>Packliste</h2><small>Nutzt Wetter und Anlass von oben.</small><div class="fl" style="margin-top:8px"><input id="pkD" type="number" min="1" max="21" value="${pkDays}" style="width:80px;margin:0"><span>Tage</span><button class="btn acc" id="pkB">Packliste erstellen</button></div>${pack.length?packHtml():''}
+   <h2>Teile auswählen</h2>${chips()}${filters()}
    <div class="grid">${tiles(shown(),x=>sel.has(x.id)?'on':'')}</div>`;
   h+=`<h2>Gespeicherte Outfits</h2>`;
   h+=outfits.length?outfits.map(o=>{const its=o.ids.map(i=>items.find(x=>x.id===i)).filter(Boolean);
@@ -125,7 +127,7 @@ function render(){
 }
 
 $('#app').addEventListener('change',e=>{const k=e.target.dataset.s;if(e.target.dataset.wn){WASHN[e.target.dataset.wn]=Math.max(0,parseInt(e.target.value)||0);saveLists();return}
- if(k){if(k==='sw'||k==='so')sug[k[1]]=e.target.value;else F[k]=e.target.value;render()}});
+ if(k){if(k==='sw'||k==='so'){sug[k[1]]=e.target.value;if(k==='sw'){sug.temp=null;sug.rain=false;sug.info=''}}else F[k]=e.target.value;render()}});
 $('#app').addEventListener('click',async e=>{
  const t=e.target.closest('button');if(!t)return;
  if(t.dataset.f){F.cat=t.dataset.f;F.sub='';return render()}
@@ -142,7 +144,11 @@ $('#app').addEventListener('click',async e=>{
  if(t.dataset.mo!==undefined){mo=t.dataset.mo==='0'?0:mo+ +t.dataset.mo;return render()}
  if(t.dataset.wk!==undefined){wk=t.dataset.wk==='0'?0:wk+ +t.dataset.wk;return render()}
  if(t.dataset.day)return openDay(t.dataset.day);
- if(t.id==='sugB'){const r=suggest();if(!r.length)return alert('Keine passenden Teile gefunden. Wähle andere Filter oder füge mehr Teile hinzu.');sel=new Set(r.map(x=>x.id));return render()}
+ if(t.id==='wxB'){try{const w=await getWx();sug.temp=w.max;sug.w=w.max>=22?'Sommer':w.max<=10?'Winter':'Übergang';sug.rain=w.rain>=50||(w.code>=51&&w.code<=67)||w.code>=80;sug.info=`Heute: ${Math.round(w.max)}° / ${Math.round(w.min)}°, Regen ${w.rain} %`}catch{alert('Das Wetter konnte nicht geladen werden. Ist der Standort erlaubt und das Internet an?')}return render()}
+ if(t.id==='fbUp'||t.id==='fbDn'){const v=t.id==='fbUp'?1:-1;FB.push({k:[...lastSug].sort().join(','),ids:[...lastSug],v});FB=FB.slice(-300);await saveLists();
+  if(v<0){const r=suggest();if(r.length){sel=new Set(r.map(x=>x.id));lastSug=r.map(x=>x.id)}}else lastSug=null;return render()}
+ if(t.id==='pkB'){pkDays=Math.min(21,Math.max(1,parseInt($('#pkD').value)||3));pack=packList(pkDays).map(x=>x.id);return render()}
+ if(t.id==='sugB'){const r=suggest();if(!r.length)return alert('Keine passenden Teile gefunden. Wähle andere Filter oder füge mehr Teile hinzu.');sel=new Set(r.map(x=>x.id));lastSug=r.map(x=>x.id);return render()}
  if(t.dataset.edit){const o=outfits.find(x=>x.id===t.dataset.edit);sel=new Set(o.ids);await st('outfits','readwrite',s=>s.delete(o.id));await load();scrollTo(0,0);return}
  if(t.id==='selT'){selMode=!selMode;dsel.clear();return render()}
  if(t.id==='selAll'){shown().forEach(x=>dsel.add(x.id));return render()}
@@ -163,6 +169,9 @@ function formHtml(x){const t=x.tags||{};
  <select id="br">${['',...BRANDS].map(b=>`<option value="${esc(b)}" ${b===x.brand?'selected':''}>${b?esc(b):'Marke wählen…'}</option>`).join('')}<option value="__new">＋ Neue Marke …</option></select>
  <div class="row" style="margin:0"><input id="co" type="number" step="0.01" inputmode="decimal" placeholder="Preis (€)" value="${x.cost??''}" style="flex:1"><input id="cd" placeholder="ID / Kürzel" value="${esc(x.code)}" style="flex:1"></div>
  <input id="nt" placeholder="Notiz" value="${esc(x.note)}">
+ <div class="row" style="margin:0"><select id="fo" style="flex:1">${opt(FORMS,x.form,'Formalität')}</select><select id="pa" style="flex:1">${opt(PATS,x.pat,'Muster')}</select><select id="fi" style="flex:1">${opt(FITS,x.fit,'Passform')}</select></div>
+ <div class="row" style="margin:0"><input id="sz" placeholder="Größe" value="${esc(x.size)}" style="flex:1"><input id="ma" placeholder="Material" value="${esc(x.mat)}" style="flex:1"></div>
+ <input id="cr" placeholder="Pflegehinweise" value="${esc(x.care)}">
  <label><small>Gekauft am</small><input id="bt" type="date" value="${x.bought||''}"></label>
  ${['w','o','c'].map(k=>`<small>${TL[k]}</small><div class="chips tg" data-k="${k}">${TAGS[k].map(v=>`<button type="button" class="chip ${(t[k]||[]).includes(v)?'on':''}" data-v="${v}">${v}</button>`).join('')}</div>`).join('')}`}
 function fillSub(cur){$('#sub').innerHTML=CATS[$('#cat').value].map(s=>`<option ${s===cur?'selected':''}>${s}</option>`).join('')}
@@ -172,7 +181,7 @@ $('#form').onchange=async e=>{if(e.target.id==='cat')fillSub();
  if(e.target.id==='br'&&e.target.value==='__new'){const n=(prompt('Name der Marke?')||'').trim(),ex=BRANDS.find(b=>b.toLowerCase()===n.toLowerCase());
   if(!n){e.target.value='';return}if(!ex){BRANDS.push(n);await saveLists();e.target.add(new Option(n,n),e.target.options.length-1)}e.target.value=ex||n}};
 function showView(){const x=items.find(i=>i.id===viewId),t=x.tags||{},n=cnt(x),hc=x.cost!==''&&x.cost!=null;$('#big').src=pic(x);
- $('#vi').innerHTML=`<p><b>${esc(x.name||x.sub||x.cat)}</b><br><small>${x.cat}${x.sub?' · '+x.sub:''}${x.brand?'<br>Marke: '+esc(x.brand):''}<br>Preis: ${hc?x.cost+' €':'–'} · ${n}× getragen · Pro Tragen: ${hc&&n?(x.cost/n).toFixed(2)+' €':'–'}<br>Gekauft: ${fd(x.bought)}<br>Zuletzt getragen: ${fd(x.worn)}<br>Hinzugefügt: ${fd(x.t)}${x.code?'<br>ID: '+esc(x.code):''}${x.note?'<br>'+esc(x.note):''}</small></p>${['w','o','c'].flatMap(k=>t[k]||[]).map(v=>`<span class="chip on" style="display:inline-block;margin:0 4px 4px 0;padding:3px 10px;font-size:12px">${esc(v)}</span>`).join('')}`;
+ $('#vi').innerHTML=`<p><b>${esc(x.name||x.sub||x.cat)}</b><br><small>${x.cat}${x.sub?' · '+x.sub:''}${x.brand?'<br>Marke: '+esc(x.brand):''}<br>Preis: ${hc?x.cost+' €':'–'} · ${n}× getragen · Pro Tragen: ${hc&&n?(x.cost/n).toFixed(2)+' €':'–'}<br>Gekauft: ${fd(x.bought)}<br>Zuletzt getragen: ${fd(x.worn)}<br>Hinzugefügt: ${fd(x.t)}${x.code?'<br>ID: '+esc(x.code):''}${x.note?'<br>'+esc(x.note):''}${[x.form,x.pat,x.fit].some(Boolean)?'<br>'+[x.form,x.pat,x.fit].filter(Boolean).join(' · '):''}${x.size||x.mat?'<br>'+[x.size&&'Größe '+esc(x.size),x.mat&&esc(x.mat)].filter(Boolean).join(' · '):''}${x.care?'<br>Pflege: '+esc(x.care):''}</small></p>${['w','o','c'].flatMap(k=>t[k]||[]).map(v=>`<span class="chip on" style="display:inline-block;margin:0 4px 4px 0;padding:3px 10px;font-size:12px">${esc(v)}</span>`).join('')}`;
  $('#vFav').textContent=x.fav?'♥ Favorit':'♡ Favorit';$('#vWash').textContent=x.dirty?'🧺 Wieder sauber':'🧺 In die Wäsche'}
 const upd=async f=>{const x=items.find(i=>i.id===viewId);f(x);await st('items','readwrite',s=>s.put(x));await load();showView()};
 $('#vWash').onclick=()=>upd(x=>{x.dirty=!x.dirty;if(!x.dirty)x.sinceWash=0});
@@ -195,17 +204,17 @@ $('#addNo').onclick=()=>{if(queue.length)return nextQ();$('#add').close();load()
 $('#addAll').onclick=()=>{queue=[];$('#add').close();load()};
 $('#addOk').onclick=async()=>{const o=items.find(i=>i.id===editId)||{},tags={};
  document.querySelectorAll('#form .tg').forEach(g=>tags[g.dataset.k]=[...g.querySelectorAll('.chip.on')].map(b=>b.dataset.v));
- const x={...o,id:o.id||uid(),img:pend,t:o.t||Date.now(),cat:$('#cat').value,sub:$('#sub').value,name:$('#nm').value.trim(),bought:$('#bt').value,tags,fav:!!o.fav,worn:o.worn||'',brand:$('#br').value==='__new'?'':$('#br').value,cost:$('#co').value===''?'':+$('#co').value,code:$('#cd').value.trim(),note:$('#nt').value.trim()};
+ const x={...o,id:o.id||uid(),img:pend,t:o.t||Date.now(),cat:$('#cat').value,sub:$('#sub').value,name:$('#nm').value.trim(),bought:$('#bt').value,tags,fav:!!o.fav,worn:o.worn||'',brand:$('#br').value==='__new'?'':$('#br').value,cost:$('#co').value===''?'':+$('#co').value,code:$('#cd').value.trim(),note:$('#nt').value.trim(),form:$('#fo').value,pat:$('#pa').value,fit:$('#fi').value,size:$('#sz').value.trim(),mat:$('#ma').value.trim(),care:$('#cr').value.trim()};
  await st('items','readwrite',s=>s.put(x));last={cat:x.cat,sub:x.sub,tags:x.tags};
  if(queue.length)return nextQ();$('#add').close();load()};
 $('#vOk').onclick=()=>$('#view').close();
 $('#vDel').onclick=async()=>{if(!confirm('Dieses Teil löschen?'))return;await st('items','readwrite',s=>s.delete(viewId));sel.delete(viewId);$('#view').close();load()};
 
 async function exportData(){
- const blob=new Blob([JSON.stringify({v:3,items,outfits,plan,lists:{brand:BRANDS,w:TAGS.w,o:TAGS.o,c:TAGS.c}})],{type:'application/json'});
+ const blob=new Blob([JSON.stringify({v:3,items,outfits,plan,lists:{brand:BRANDS,w:TAGS.w,o:TAGS.o,c:TAGS.c,wish:WISH,fb:FB,washN:WASHN}})],{type:'application/json'});
  const file=new File([blob],`garderobe-${new Date().toISOString().slice(0,10)}.json`,{type:'application/json'});
- try{if(navigator.canShare&&navigator.canShare({files:[file]}))return await navigator.share({files:[file]})}catch(e){if(e.name==='AbortError')return}
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click()}
+ try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});markExp();return}}catch(e){if(e.name==='AbortError')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click();markExp()}
 $('#imp').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
  try{const d=JSON.parse(await f.text());if(!Array.isArray(d.items))throw 0;
   const byId=new Set(items.map(x=>x.id)),byImg=new Map(items.map(x=>[x.img,x.id])),oids=new Set(outfits.map(o=>o.id)),remap={};
@@ -280,14 +289,14 @@ $('#bgOk').onclick=()=>{const t=trim($('#bgC'));if(!t)return alert('Es ist nicht
  pend=t.toDataURL('image/png');$('#prev').src=pend;$('#bgUndo').style.display='';$('#bg').close()};
 $('#bgUndo').onclick=()=>{pend=orig;$('#prev').src=pend;$('#bgUndo').style.display='none'};
 const cnt=x=>(x.base||0)+(x.log||[]).length||(x.worn?1:0);
-const saveLists=()=>st('lists','readwrite',s=>s.put({id:'lists',brand:BRANDS,w:TAGS.w,o:TAGS.o,c:TAGS.c,washN:WASHN}));
-const getL=k=>k==='brand'?BRANDS:TAGS[k];
+const saveLists=()=>st('lists','readwrite',s=>s.put({id:'lists',brand:BRANDS,w:TAGS.w,o:TAGS.o,c:TAGS.c,washN:WASHN,fb:FB,wish:WISH}));
+const getL=k=>k==='brand'?BRANDS:k==='wish'?WISH:TAGS[k];
 const useCount=(k,v)=>items.filter(x=>k==='brand'?x.brand===v:((x.tags||{})[k]||[]).includes(v)).length;
-function mergeL(l){if(!l)return;for(const k of ['brand','w','o','c'])for(const v of l[k]||[])if(!getL(k).includes(v))getL(k).push(v);saveLists()}
+function mergeL(l){if(!l)return;for(const k of ['brand','w','o','c','wish'])for(const v of l[k]||[])if(!getL(k).includes(v))getL(k).push(v);if(l.fb)FB=[...FB,...l.fb.filter(f=>!FB.some(g=>g.k===f.k&&g.v===f.v))].slice(-300);saveLists()}
 const CMAP={Schwarz:'#2b2b2b',Weiß:'#f4f4f4',Grau:'#9a9a9a',Blau:'#3f6fbf',Hellblau:'#9cc3ea',Dunkelblau:'#1f3a6b',Grün:'#4f8a55',Rot:'#c0392b',Braun:'#7b5a3c',Beige:'#d8c4a0',Gelb:'#e8c547',Orange:'#e8873a',Rosa:'#e9a3c0',Lila:'#8e63b5',Bunt:'#b57bd4'};
 function ph(x){const c=CMAP[((x.tags||{}).c||[])[0]]||'#cfd5cc';return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="12" y="12" width="76" height="76" rx="10" fill="${c}"/><text x="50" y="54" font-size="11" text-anchor="middle" fill="#fff" stroke="#000" stroke-opacity=".5" stroke-width="2" paint-order="stroke" font-family="sans-serif">${esc(x.sub||x.cat)}</text></svg>`)}
 const pic=x=>x.img||ph(x);
-function listsHtml(){return '<h1>Listen</h1><small>Tippe einen Eintrag zum Umbenennen oder Löschen. Änderungen gelten für alle Teile.</small>'+[['brand','Marken'],['w','Wetter'],['o','Anlässe'],['c','Farben']].map(([k,l])=>`<h2>${l}</h2><div class="chips tg">${getL(k).map((v,i)=>`<button class="chip" data-lk="${k}" data-li="${i}">${esc(v)} <small>${useCount(k,v)}</small></button>`).join('')}</div><div class="row" style="margin:6px 0 0"><input data-ln="${k}" placeholder="Neu hinzufügen …" style="flex:1;margin:0"><button class="btn ghost" data-la="${k}">＋</button></div>`).join('')+washHtml()}
+function listsHtml(){return '<h1>Listen</h1><small>Tippe einen Eintrag zum Umbenennen oder Löschen. Änderungen gelten für alle Teile.</small>'+[['wish','Wunschliste'],['brand','Marken'],['w','Wetter'],['o','Anlässe'],['c','Farben']].map(([k,l])=>`<h2>${l}</h2><div class="chips tg">${getL(k).map((v,i)=>`<button class="chip" data-lk="${k}" data-li="${i}">${esc(v)} ${k==='wish'?'':`<small>${useCount(k,v)}</small>`}</button>`).join('')}</div><div class="row" style="margin:6px 0 0"><input data-ln="${k}" placeholder="Neu hinzufügen …" style="flex:1;margin:0"><button class="btn ghost" data-la="${k}">＋</button></div>`).join('')+washHtml()}
 const washHtml=()=>'<h2>Wäsche</h2><small>Nach wie vielen Tragetagen kommt ein Teil automatisch in die Wäsche? 0 = nie.</small>'+Object.keys(CATS).map(c=>`<label class="row" style="margin:6px 0 0;align-items:center;justify-content:space-between"><span>${c}</span><input type="number" min="0" data-wn="${c}" value="${WASHN[c]||0}" style="width:80px;margin:0"></label>`).join('');
 function statsHtml(){
  if(!items.length)return '<h1>Statistik</h1><p class="empty">Noch keine Teile.</p>';
@@ -303,9 +312,9 @@ function statsHtml(){
  <h2>Meistgetragen</h2>${top.length?thumbs(top):'<p class="empty">Noch keine Tragetage erfasst.</p>'}
  <h2>Länger nicht getragen</h2><small>Nie oder seit über 6 Monaten: Kandidaten zum Aussortieren (${old.length})</small><div style="height:8px"></div>${thumbs(old.slice(0,9))}
  <h2>Kosten pro Tragen</h2>${cp.length?`<small>Am günstigsten</small>${cp.slice(0,4).map(row).join('')}${cp.length>4?`<small>Am teuersten</small>${cp.slice(-3).reverse().map(row).join('')}`:''}`:'<p class="empty">Braucht einen Preis und mindestens einen Tragetag.</p>'}
- <h2>Nach Kategorie</h2>${bars(cntBy(x=>x.cat))}<h2>Nach Typ</h2>${bars(cntBy(x=>x.sub),10)}<h2>Nach Farbe</h2>${bars(cntBy(x=>(x.tags||{}).c))}<h2>Nach Marke</h2>${bars(cntBy(x=>x.brand),10)}`}
+ ${gapHtml()}<h2>Nach Kategorie</h2>${bars(cntBy(x=>x.cat))}<h2>Nach Typ</h2>${bars(cntBy(x=>x.sub),10)}<h2>Nach Farbe</h2>${bars(cntBy(x=>(x.tags||{}).c))}<h2>Nach Marke</h2>${bars(cntBy(x=>x.brand),10)}`}
 let ldK=null,ldV=null;
-function openL(k,i){ldK=k;ldV=getL(k)[i];$('#ldT').textContent=ldV;$('#ldN').value=ldV;$('#ldC').textContent=useCount(k,ldV)+' Teile verwenden das.';$('#ld').showModal()}
+function openL(k,i){ldK=k;ldV=getL(k)[i];$('#ldT').textContent=ldV;$('#ldN').value=ldV;$('#ldC').textContent=k==='wish'?'':useCount(k,ldV)+' Teile verwenden das.';$('#ld').showModal()}
 async function applyL(k,old,nw){const L=getL(k),i=L.indexOf(old);if(nw===null)L.splice(i,1);else L[i]=nw;
  for(const key of ['w','o','c'])if(F[key]===old)F[key]='';if(F.b===old)F.b='';if(sug.w===old)sug.w='';if(sug.o===old)sug.o='';
  for(const x of items){let ch=false;
@@ -363,17 +372,78 @@ function figure(its,w){
  tops.forEach((x,i)=>{const k=jack.length?[60,68,80,98]:[45,56,110,120];h+=im(x,[k[0]-i*5,k[1]-i*4,k[2]+i*10,k[3]+i*8])});
  g('Accessoires').filter(x=>SLOT[x.sub]).forEach(x=>h+=im(x,SLOT[x.sub]));
  return `<svg viewBox="0 0 200 360" role="img" aria-label="Outfit" style="width:${w};max-width:100%;background:#F1F1EC;border-radius:12px;display:block"><g fill="#E0E0D8"><circle cx="100" cy="30" r="19"/><rect x="92" y="46" width="16" height="14" rx="5"/><path d="M58 62Q100 54 142 62L152 135L140 137L136 100L134 172L66 172L64 100L60 137L48 135Z"/><path d="M66 170L134 170L128 296L106 296L100 200L94 296L72 296Z"/></g>${h}</svg>`}
-function suggest(){
- const days=x=>x.worn?Math.min(90,(Date.now()-new Date(x.worn))/864e5):90;
- const has=(x,k,v)=>((x.tags||{})[k]||[]).includes(v);
- const ok=(x,k,v)=>!v||!((x.tags||{})[k]||[]).length||has(x,k,v);
- const NEU=['Schwarz','Weiß','Grau','Beige','Blau'];
- const clash=(a,b)=>{const A=(a.tags||{}).c||[],B=(b.tags||{}).c||[];return A.some(c=>!NEU.includes(c))&&B.some(c=>!NEU.includes(c))&&!A.some(c=>B.includes(c))};
- const pick=(cat,ref)=>{const l=items.filter(x=>x.cat===cat&&!x.dirty&&ok(x,'w',sug.w)&&ok(x,'o',sug.o));if(!l.length)return null;
-  return l.map(x=>({x,s:Math.random()*2+days(x)/30+(x.fav?.5:0)+(sug.w&&has(x,'w',sug.w)?1:0)+(sug.o&&has(x,'o',sug.o)?1:0)-(ref.some(r=>clash(r,x))?2:0)})).sort((a,b)=>b.s-a.s)[0].x};
- const out=[];for(const c of ['Oberteile','Hosen','Schuhe']){const x=pick(c,out);if(x)out.push(x)}
- if(['Winter','Regen','Übergang'].includes(sug.w)||(!sug.w&&Math.random()<.3)){const j=pick('Jacken',out);if(j)out.push(j)}
- return out}
+const FORMS=['Sportlich','Casual','Smart Casual','Business','Festlich'],PATS=['Einfarbig','Gestreift','Kariert','Bedruckt','Sonstiges'],FITS=['Eng','Normal','Weit'];
+const opt=(a,v,l)=>`<option value="">${l}</option>`+a.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('');
+const hay=x=>[x.name,x.brand,x.code,x.note,x.sub,x.cat,x.size,x.mat,x.care,x.form,x.pat,x.fit,...['w','o','c'].flatMap(k=>(x.tags||{})[k]||[])].filter(Boolean).join(' ').toLowerCase();
+function markExp(){try{localStorage.setItem('lastExport',Date.now())}catch{}}
+function backupNote(){let t=0;try{t=+localStorage.getItem('lastExport')||0}catch{}
+ const d=Math.floor((Date.now()-t)/864e5);if(!items.length||(t&&d<=14))return '';
+ return `<div class="saved"><b>🔔 Sicherung fällig</b><small>${t?`Die letzte Sicherung ist ${d} Tage her.`:'Es gibt noch keine Sicherung auf diesem Gerät.'} Exportiere deine Garderobe unten bei „Sicherung“.</small></div>`}
+function gapHtml(){const n=(k,v)=>items.filter(x=>((x.tags||{})[k]||[]).includes(v)).length;
+ const low=[...TAGS.w.map(v=>['Wetter '+v,n('w',v)]),...TAGS.o.map(v=>['Anlass '+v,n('o',v)])].filter(([,c])=>c<3);
+ const miss=Object.entries(CATS).filter(([c])=>c!=='Accessoires').flatMap(([c,subs])=>subs.filter(v=>!items.some(x=>x.sub===v)));
+ const ch=l=>`<div class="chips tg">${l.map(v=>`<span class="chip">${esc(v)}</span>`).join('')}</div>`;
+ return `<h2>Lücken</h2>${low.length?`<small>Wenig Teile mit diesem Tag (unter 3)</small>${ch(low.map(([a,c])=>a+' · '+c))}`:''}${miss.length?`<small>Noch gar nichts vorhanden</small>${ch(miss)}`:''}${low.length||miss.length?'':'<p class="empty">Keine auffälligen Lücken.</p>'}<small>Kaufideen sammelst du im Tab „Listen“ unter Wunschliste.</small>`}
+const fbBar=()=>lastSug&&sel.size===lastSug.length&&lastSug.every(i=>sel.has(i))?'<div class="row" style="margin:8px 0 0"><button class="btn ghost" id="fbUp">👍 Gefällt mir</button><button class="btn ghost" id="fbDn">👎 Nicht mein Stil</button></div>':'';
+const packHtml=()=>{const l=pack.map(i=>items.find(x=>x.id===i)).filter(Boolean),c={};l.forEach(x=>c[x.cat]=(c[x.cat]||0)+1);
+ return `<p><b>${l.length} Teile</b> <small>${Object.entries(c).map(([k,v])=>v+' '+k).join(' · ')}</small></p><div class="grid">${l.map(x=>`<div class="tile"><img src="${pic(x)}" alt=""><span class="n">${esc(x.name||x.sub)}</span></div>`).join('')}</div>`};
+async function getWx(){const pos=await new Promise((ok,no)=>navigator.geolocation.getCurrentPosition(ok,no,{timeout:10000,maximumAge:36e5}));
+ const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude.toFixed(2)}&longitude=${pos.coords.longitude.toFixed(2)}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=auto&forecast_days=1`);
+ const d=(await r.json()).daily;return{max:d.temperature_2m_max[0],min:d.temperature_2m_min[0],rain:d.precipitation_probability_max[0]||0,code:d.weathercode[0]}}
+/* ---- Stylist: Regeln + Lernen aus deinen Outfits ---- */
+const NEU=['Schwarz','Weiß','Grau','Beige','Blau','Hellblau','Dunkelblau','Braun'];
+const FL={Sportlich:1,Casual:2,'Smart Casual':3,Business:4,Festlich:5},OT={Sport:1,Alltag:2,Arbeit:3,Abend:4,Festlich:5};
+const clr=x=>(x.tags||{}).c||[],accent=x=>clr(x).some(c=>!NEU.includes(c)),patt=x=>x.pat&&x.pat!=='Einfarbig';
+const hasT=(x,k,v)=>((x.tags||{})[k]||[]).includes(v),okT=(x,k,v)=>!v||!((x.tags||{})[k]||[]).length||hasT(x,k,v);
+const clash=(a,b)=>accent(a)&&accent(b)&&!clr(a).some(c=>clr(b).includes(c));
+function history(){const pair={},tt={},cc={};
+ const add=(l,w)=>{for(let i=0;i<l.length;i++)for(let j=i+1;j<l.length;j++){const a=l[i],b=l[j],k=[a.id,b.id].sort().join('|'),tk=[a.sub,b.sub].sort().join('|');
+  pair[k]=(pair[k]||0)+w;tt[tk]=(tt[tk]||0)+w;clr(a).forEach(x=>clr(b).forEach(y=>{const ck=[x,y].sort().join('|');cc[ck]=(cc[ck]||0)+w}))}};
+ outfits.forEach(o=>add(outIts(o),2));
+ const byDay={};items.forEach(x=>(x.log||[]).forEach(d=>(byDay[d]=byDay[d]||[]).push(x)));
+ Object.values(byDay).forEach(l=>{if(l.length>1)add(l,1)});return{pair,tt,cc,byDay}}
+function ctx(){const hist=history(),now=Date.now(),memo=new Map();
+ const dsw=x=>x.worn?Math.min(90,Math.max(0,(now-new Date(x.worn))/864e5)):90;
+ const base=x=>{if(memo.has(x.id))return memo.get(x.id);let b=Math.min(dsw(x),60)/25+(x.fav?.5:0)-(dsw(x)<3?3:0);
+  if(sug.w&&hasT(x,'w',sug.w))b+=1;if(sug.rain&&hasT(x,'w','Regen'))b+=1;if(sug.o&&hasT(x,'o',sug.o))b+=1;
+  if(sug.w==='Sommer'){if(HEAVY.includes(x.sub))b-=2;if(x.sub==='Winterjacke')b-=3}
+  if(sug.w==='Winter'&&['Shorts','Sandalen'].includes(x.sub))b-=3;
+  if(sug.o&&OT[sug.o]&&FL[x.form])b-=Math.abs(FL[x.form]-OT[sug.o])*.7;
+  memo.set(x.id,b);return b};
+ const pool=c=>items.filter(x=>x.cat===c&&!x.dirty&&okT(x,'w',sug.w)&&okT(x,'o',sug.o));
+ return{hist,base,pool}}
+function outfitScore(o,C){let s=o.reduce((a,x)=>a+C.base(x),0);
+ const ac=o.filter(accent).length;if(ac>1)s-=2*(ac-1);
+ const pt=o.filter(patt).length;if(pt>1)s-=2*(pt-1);
+ const fs=o.map(x=>FL[x.form]).filter(Boolean);if(fs.length>1)s-=Math.max(0,Math.max(...fs)-Math.min(...fs)-1)*1.5;
+ const top=o.find(x=>x.cat==='Oberteile'),bot=o.find(x=>x.cat==='Hosen');
+ if(top&&bot){if(top.fit==='Weit'&&bot.fit==='Weit')s-=1;if(top.fit==='Weit'&&bot.fit==='Eng')s+=.5}
+ let aff=0;
+ for(let i=0;i<o.length;i++)for(let j=i+1;j<o.length;j++){const a=o[i],b=o[j];
+  if(clash(a,b))s-=2;else if(!accent(a)&&!accent(b))s+=.3;
+  aff+=Math.min(2,C.hist.pair[[a.id,b.id].sort().join('|')]||0)*.5+Math.min(3,C.hist.tt[[a.sub,b.sub].sort().join('|')]||0)*.1;
+  clr(a).forEach(x=>clr(b).forEach(y=>{aff+=Math.min(3,C.hist.cc[[x,y].sort().join('|')]||0)*.05}))}
+ s+=Math.min(aff,3);
+ const ids=new Set(o.map(x=>x.id));FB.forEach(f=>{const n=f.ids.filter(i=>ids.has(i)).length;if(n>1)s+=f.v*(n-1)*.8});return s}
+const needJacket=()=>['Winter','Übergang'].includes(sug.w)||sug.rain||(sug.temp!=null&&sug.temp<14);
+function suggest(){const C=ctx(),pool={};for(const c of ['Oberteile','Hosen','Schuhe','Jacken'])pool[c]=C.pool(c);
+ const wpick=l=>{if(!l.length)return null;const w=l.map(x=>Math.exp(C.base(x)/2)),t=w.reduce((a,b)=>a+b,0);let r=Math.random()*t;for(let i=0;i<l.length;i++){r-=w[i];if(r<=0)return l[i]}return l[l.length-1]};
+ const recent=new Set(),now=Date.now();Object.entries(C.hist.byDay).forEach(([d,l])=>{if((now-new Date(d))/864e5<=14)recent.add(l.map(x=>x.id).sort().join(','))});
+ FB.filter(f=>f.v<0).forEach(f=>recent.add(f.k));
+ const cands=[];
+ for(let n=0;n<80;n++){const o=[];for(const c of ['Oberteile','Hosen','Schuhe']){const x=wpick(pool[c]);if(x)o.push(x)}
+  if(pool.Jacken.length&&(needJacket()||(!sug.w&&sug.temp==null&&Math.random()<.3))&&sug.w!=='Sommer'){const j=wpick(pool.Jacken);if(j)o.push(j)}
+  if(o.length<2||recent.has(o.map(x=>x.id).sort().join(',')))continue;cands.push({o,s:outfitScore(o,C)})}
+ cands.sort((a,b)=>b.s-a.s);if(!cands.length)return[];
+ return cands[Math.floor(Math.random()**2*Math.min(5,cands.length))].o}
+function packList(days){const C=ctx(),nb=Math.min(4,Math.max(1,Math.ceil(days/3))),nt=Math.min(8,Math.max(1,Math.ceil(days*.8)));
+ const take=(c,n,sc)=>{const out=[];let l=C.pool(c);for(let i=0;i<n&&l.length;i++){const x=l.map(y=>({y,s:sc(y,out)+Math.random()*.8})).sort((a,b)=>b.s-a.s)[0].y;out.push(x);l=l.filter(y=>y!==x)}return out};
+ const vers=x=>clr(x).every(c=>NEU.includes(c))&&!patt(x)?1.2:0,dup=(x,o)=>o.some(y=>y.sub===x.sub)?-.8:0;
+ const B=take('Hosen',nb,(x,o)=>C.base(x)+vers(x)+dup(x,o));
+ const T=take('Oberteile',nt,(x,o)=>C.base(x)+dup(x,o)-B.filter(b=>clash(b,x)).length-(patt(x)?.3:0));
+ const S=take('Schuhe',2,(x,o)=>C.base(x)+vers(x)+dup(x,o));
+ const J=needJacket()&&sug.w!=='Sommer'?take('Jacken',1,x=>C.base(x)):[];
+ return[...T,...B,...S,...J]}
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{});
 load();
